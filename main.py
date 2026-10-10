@@ -23,11 +23,6 @@ trips = [
             "price": 80,
             "departure": "2026-11-13 20:00",
             "arrival": "2026-11-13 21:30"
-        },
-
-        "hotel": {
-        "name": "Budget Hostel",
-        "price_per_night": 45
         }
     },
 
@@ -44,11 +39,6 @@ trips = [
             "price": 75,
             "departure": "2026-11-13 19:00",
             "arrival": "2026-11-13 20:30"
-        },
-
-        "hotel": {
-        "name": "Budget Hostel",
-        "price_per_night": 45
         }
     },
 
@@ -65,15 +55,52 @@ trips = [
             "price": 60,
             "departure": "2026-11-13 06:00",
             "arrival": "2026-11-13 07:30"
-        },
-
-        "hotel": {
-        "name": "Budget Hostel",
-        "price_per_night": 45
         }
     }
 ]
 
+# ------------------------------------------
+# Hotel data
+#
+# Each hotel contains:
+# - Hotel name
+# - Price per night
+# ------------------------------------------
+
+hotels = [
+    {
+        "name": "Budget Hostel",
+        "price_per_night": 45
+    },
+    {
+        "name": "City Hotel",
+        "price_per_night": 80
+    },
+    {
+        "name": "Premium Hotel",
+        "price_per_night": 120
+    }
+]
+# ------------------------------------------
+# Generate flight and hotel combinations
+#
+# Combine every flight option
+# with every available hotel.
+# ------------------------------------------
+
+combinations = []
+
+for trip in trips:
+
+    for hotel in hotels:
+
+        combination = {
+            "name": trip["name"] + " + " + hotel["name"],
+            "outbound": trip["outbound"],
+            "return": trip["return"],
+            "hotel": hotel
+        }
+        combinations.append(combination)
 # ------------------------------------------
 # Convert string to datetime object
 #
@@ -311,7 +338,7 @@ def calculate_cost_per_hour(trip):
 # Calculate everything
 # ------------------------------------------
 
-for trip in trips:
+for trip in combinations:
 
     # Calculate flight price
     trip["total_price"] = calculate_total_price(trip)
@@ -338,18 +365,18 @@ for trip in trips:
 # Find cheapest trip
 # ------------------------------------------
 
-cheapest_trip = trips[0]
+cheapest_trip = combinations[0]
 
-for trip in trips:
+for trip in combinations:
     if trip["total_trip_cost"] < cheapest_trip["total_trip_cost"]:
         cheapest_trip = trip
 # ------------------------------------------
 # Find best trip
 # ------------------------------------------
 
-best_trip = trips[0]
+best_trip = combinations[0]
 
-for trip in trips:
+for trip in combinations:
 
     if trip["score"] < best_trip["score"]:
         best_trip = trip
@@ -358,9 +385,9 @@ for trip in trips:
 # Find best value trip
 # ------------------------------------------
 
-best_value_trip = trips[0]
+best_value_trip = combinations[0]
 
-for trip in trips:
+for trip in combinations:
 
     if trip["cost_per_hour"] < best_value_trip["cost_per_hour"]:
         best_value_trip = trip
