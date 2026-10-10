@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 # ------------------------------------------
 # Flight data
 #
@@ -155,19 +155,17 @@ def calculate_total_penalty(trip):
 
     return outbound_penalty + return_penalty
 
-
 # ------------------------------------------
-# Calculate usable travel hours
+# Calculate real usable travel hours
 #
-# Calculate the time between:
+# Sightseeing hours: 08:00 - 22:00
+#
+# Only counts time between:
 # - Arrival at destination
 # - Departure from destination
 #
-# Supports different travel dates
-# and overnight flights.
-#
-# Note:
-# Sleeping time is currently included.
+# Excludes overnight sleeping hours
+# Supports multiple travel days
 # ------------------------------------------
 
 def calculate_usable_hours(trip):
@@ -180,28 +178,37 @@ def calculate_usable_hours(trip):
         trip["return"]["departure"]
     )
 
-    travel_duration = return_departure - outbound_arrival
+    total_usable_seconds = 0
 
-    usable_hours = travel_duration.total_seconds() / 3600
+    current_date = outbound_arrival.date()
+    last_date = return_departure.date()
 
-    return max(0, usable_hours)
+    while current_date <= last_date:
 
-# ------------------------------------------
-# Calculate usable hours for a single day
-#
-# Travel hours: 08:00 - 22:00
-# Excludes overnight sleeping hours
-# ------------------------------------------
+        day_start = datetime.combine(
+            current_date,
+            datetime.min.time()
+        ).replace(hour=8)
 
-def calculate_daily_usable_hours(start, end):
+        day_end = datetime.combine(
+            current_date,
+            datetime.min.time()
+        ).replace(hour=22)
 
-    travel_start = 8
-    travel_end = 22
+        # Find overlapping sightseeing time
+        start = max(outbound_arrival, day_start)
+        end = min(return_departure, day_end)
 
-    start_hour = max(start, travel_start)
-    end_hour = min(end, travel_end)
+        if end > start:
+            total_usable_seconds += (
+                end - start
+            ).total_seconds()
 
-    return max(0, end_hour - start_hour)
+        current_date += timedelta(days=1)
+
+    return total_usable_seconds / 3600
+
+
 # ------------------------------------------
 # Calculate Student Value Score
 #
