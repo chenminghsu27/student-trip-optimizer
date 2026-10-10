@@ -23,6 +23,11 @@ trips = [
             "price": 80,
             "departure": "2026-11-13 20:00",
             "arrival": "2026-11-13 21:30"
+        },
+
+        "hotel": {
+        "name": "Budget Hostel",
+        "price_per_night": 45
         }
     },
 
@@ -39,6 +44,11 @@ trips = [
             "price": 75,
             "departure": "2026-11-13 19:00",
             "arrival": "2026-11-13 20:30"
+        },
+
+        "hotel": {
+        "name": "Budget Hostel",
+        "price_per_night": 45
         }
     },
 
@@ -55,6 +65,11 @@ trips = [
             "price": 60,
             "departure": "2026-11-13 06:00",
             "arrival": "2026-11-13 07:30"
+        },
+
+        "hotel": {
+        "name": "Budget Hostel",
+        "price_per_night": 45
         }
     }
 ]
@@ -138,7 +153,55 @@ def calculate_total_price(trip):
 
     return outbound_price + return_price
 
+# ------------------------------------------
+# Calculate hotel cost
+#
+# Hotel Cost = Price Per Night × Nights
+#
+# Nights are calculated using:
+# - Outbound arrival date
+# - Return departure date
+#
+# Assumption:
+# One hotel night per calendar night
+# between arrival and return departure.
+# ------------------------------------------
 
+def calculate_hotel_cost(trip):
+
+    arrival = parse_datetime(
+        trip["outbound"]["arrival"]
+    )
+
+    departure = parse_datetime(
+        trip["return"]["departure"]
+    )
+
+    nights = (departure.date() - arrival.date()).days
+
+    nights = max(0, nights)
+
+    price_per_night = trip["hotel"]["price_per_night"]
+
+    return nights * price_per_night
+# ------------------------------------------
+# Calculate total trip cost
+#
+# Total Cost = Flight Price + Hotel Cost
+#
+# Future versions:
+# - Baggage
+# - Airport transport
+# - Other travel expenses
+# ------------------------------------------
+
+def calculate_total_trip_cost(trip):
+
+    flight_price = calculate_total_price(trip)
+
+    hotel_cost = calculate_hotel_cost(trip)
+
+    return flight_price + hotel_cost
 # ------------------------------------------
 # Calculate total penalty
 # ------------------------------------------
@@ -217,13 +280,10 @@ def calculate_usable_hours(trip):
 
 def calculate_score(trip):
 
-    price = calculate_total_price(trip)
+    total_cost = trip["total_trip_cost"]
+    penalty = trip["penalty"]
 
-    penalty = calculate_total_penalty(trip)
-
-    score = price + penalty
-
-    return score
+    return total_cost + penalty
 
 # ------------------------------------------
 # Calculate cost per usable travel hour
@@ -239,13 +299,13 @@ def calculate_score(trip):
 
 def calculate_cost_per_hour(trip):
 
-    total_price = trip["total_price"]
+    total_cost = trip["total_trip_cost"]
     usable_hours = trip["usable_hours"]
 
     if usable_hours <= 0:
         return float("inf")
 
-    return total_price / usable_hours
+    return total_cost / usable_hours
 
 # ------------------------------------------
 # Calculate everything
@@ -253,14 +313,25 @@ def calculate_cost_per_hour(trip):
 
 for trip in trips:
 
+    # Calculate flight price
     trip["total_price"] = calculate_total_price(trip)
 
+    # Calculate hotel cost
+    trip["hotel_cost"] = calculate_hotel_cost(trip)
+
+    # Calculate total trip cost
+    trip["total_trip_cost"] = calculate_total_trip_cost(trip)
+
+    # Calculate flight penalty
     trip["penalty"] = calculate_total_penalty(trip)
 
+    # Calculate usable travel hours
     trip["usable_hours"] = calculate_usable_hours(trip)
 
+    # Calculate time-adjusted score
     trip["score"] = calculate_score(trip)
 
+    # Calculate cost per usable hour
     trip["cost_per_hour"] = calculate_cost_per_hour(trip)
 
 # ------------------------------------------
@@ -270,8 +341,7 @@ for trip in trips:
 cheapest_trip = trips[0]
 
 for trip in trips:
-
-    if trip["total_price"] < cheapest_trip["total_price"]:
+    if trip["total_trip_cost"] < cheapest_trip["total_trip_cost"]:
         cheapest_trip = trip
 # ------------------------------------------
 # Find best trip
@@ -300,53 +370,72 @@ for trip in trips:
 # Print all trips
 # ------------------------------------------
 
-print()
-print("================================")
-print("       STUDENT TRIP FINDER")
-print("================================")
-print()
+# print()
+# print("================================")
+# print("       STUDENT TRIP FINDER")
+# print("================================")
+# print()
 
 
-for trip in trips:
+# for trip in trips:
 
-    print(trip["name"])
+#     print(trip["name"])
 
-    print(
-        "Outbound:",
-        trip["outbound"]["departure"],
-        "→",
-        trip["outbound"]["arrival"]
-    )
+#     print(
+#         "Outbound:",
+#         trip["outbound"]["departure"],
+#         "→",
+#         trip["outbound"]["arrival"]
+#     )
 
-    print(
-        "Return:",
-        trip["return"]["departure"],
-        "→",
-        trip["return"]["arrival"]
-    )
+#     print(
+#         "Return:",
+#         trip["return"]["departure"],
+#         "→",
+#         trip["return"]["arrival"]
+#     )
 
-    print(
-        "Flight price: $"
-        + str(trip["total_price"])
-    )
+#     print(
+#         "Flight price: $"
+#         + str(trip["total_price"])
+#     )
 
-    print(
-        "Penalty: $"
-        + str(trip["penalty"])
-    )
+#     print(
+#         "Penalty: $"
+#         + str(trip["penalty"])
+#     )
 
-    print(
-        "Student Value Score:",
-        trip["score"]
-    )
+#     print(
+#         "Student Value Score:",
+#         trip["score"]
+#     )
 
-    print(
-        "Usable travel time:",
-        round(trip["usable_hours"], 1),
-        "hours"
-    )
+#     print(
+#         "Usable travel time:",
+#         round(trip["usable_hours"], 1),
+#         "hours"
+#     )
 
-    print("----------------------------")
+#     print(
+#     "Hotel:",
+#     trip["hotel"]["name"]
+#     )
+
+#     print(
+#         "Hotel cost: $",
+#         trip["hotel_cost"]
+#     )
+
+#     print(
+#         "Total trip cost: $",
+#         trip["total_trip_cost"]
+#     )
+
+#     print(
+#         "Cost per usable hour: $",
+#         round(trip["cost_per_hour"], 2)
+#     )
+#     print("----------------------------")
 
 
 # ------------------------------------------
@@ -361,9 +450,8 @@ print(
     "Cheapest trip:",
     cheapest_trip["name"],
     "- $"
-    + str(cheapest_trip["total_price"])
+    + str(cheapest_trip["total_trip_cost"])
 )
-
 print(
     "Best time-adjusted price:",
     best_trip["name"],
