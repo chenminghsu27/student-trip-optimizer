@@ -1,11 +1,6 @@
 from datetime import datetime
 # ------------------------------------------
 # Flight data
-# ------------------------------------------
-
-trips = [
-    # ------------------------------------------
-# Flight data
 #
 # Each trip contains:
 # - Outbound flight
@@ -63,7 +58,7 @@ trips = [
         }
     }
 ]
-]
+
 # ------------------------------------------
 # Convert string to datetime object
 #
@@ -94,29 +89,39 @@ def time_to_minutes(time):
 
 # ------------------------------------------
 # Calculate penalty for one flight
+#
+# Early departure: Before 07:00
+# Late departure: At or after 22:00
+# Late arrival: At or after 23:00
+# Early arrival: Before 05:00
+#
+# Each condition adds a $30 penalty.
 # ------------------------------------------
 
 def calculate_flight_penalty(flight):
 
     penalty = 0
 
-    departure = time_to_minutes(flight["departure"])
-    arrival = time_to_minutes(flight["arrival"])
+    departure = parse_datetime(flight["departure"])
+    arrival = parse_datetime(flight["arrival"])
 
-    # Flight leaves before 7 AM
-    if departure < time_to_minutes("07:00"):
+    departure_hour = departure.hour
+    arrival_hour = arrival.hour
+
+    # Early departure
+    if departure_hour < 7:
         penalty += 30
 
-    # Flight leaves at/after 10 PM
-    if departure >= time_to_minutes("22:00"):
+    # Late departure
+    if departure_hour >= 22:
         penalty += 30
 
-    # Very late arrival
-    if arrival >= time_to_minutes("23:00"):
+    # Late arrival
+    if arrival_hour >= 23:
         penalty += 30
 
-    # Midnight / very early arrival
-    if arrival < time_to_minutes("05:00"):
+    # Early morning arrival
+    if arrival_hour < 5:
         penalty += 30
 
     return penalty
@@ -152,49 +157,34 @@ def calculate_total_penalty(trip):
 
 
 # ------------------------------------------
-# Calculate usable travel time
+# Calculate usable travel hours
 #
-# Assumption:
-# The trip lasts 4 days.
+# Calculate the time between:
+# - Arrival at destination
+# - Departure from destination
 #
-# We measure usable time from arrival at
-# destination until departure for home.
+# Supports different travel dates
+# and overnight flights.
+#
+# Note:
+# Sleeping time is currently included.
 # ------------------------------------------
 
 def calculate_usable_hours(trip):
 
-    trip_days = 4
-
-    arrival = time_to_minutes(
+    outbound_arrival = parse_datetime(
         trip["outbound"]["arrival"]
     )
 
-    return_departure = time_to_minutes(
+    return_departure = parse_datetime(
         trip["return"]["departure"]
     )
 
-    # Number of minutes between:
-    # arrival on day 1
-    # and departure on day 4
+    travel_duration = return_departure - outbound_arrival
 
-    usable_minutes = (
-        (trip_days - 1) * 24 * 60
-        + return_departure
-        - arrival
-    )
+    usable_hours = travel_duration.total_seconds() / 3600
 
-    # If outbound arrives after midnight,
-    # it actually arrives on day 2
-
-    outbound_departure = time_to_minutes(
-        trip["outbound"]["departure"]
-    )
-
-    if arrival < outbound_departure:
-        usable_minutes -= 24 * 60
-
-    return usable_minutes / 60
-
+    return max(0, usable_hours)
 
 # ------------------------------------------
 # Calculate Student Value Score
