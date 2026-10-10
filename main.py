@@ -187,6 +187,22 @@ def calculate_usable_hours(trip):
     return max(0, usable_hours)
 
 # ------------------------------------------
+# Calculate usable hours for a single day
+#
+# Travel hours: 08:00 - 22:00
+# Excludes overnight sleeping hours
+# ------------------------------------------
+
+def calculate_daily_usable_hours(start, end):
+
+    travel_start = 8
+    travel_end = 22
+
+    start_hour = max(start, travel_start)
+    end_hour = min(end, travel_end)
+
+    return max(0, end_hour - start_hour)
+# ------------------------------------------
 # Calculate Student Value Score
 #
 # Lower score = better
