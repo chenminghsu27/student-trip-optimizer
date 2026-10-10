@@ -1,6 +1,17 @@
-
+from datetime import datetime
 # ------------------------------------------
 # Flight data
+# ------------------------------------------
+
+trips = [
+    # ------------------------------------------
+# Flight data
+#
+# Each trip contains:
+# - Outbound flight
+# - Return flight
+# - Flight price
+# - Departure and arrival datetime
 # ------------------------------------------
 
 trips = [
@@ -9,14 +20,14 @@ trips = [
 
         "outbound": {
             "price": 65,
-            "departure": "06:00",
-            "arrival": "07:30"
+            "departure": "2026-11-10 06:00",
+            "arrival": "2026-11-10 07:30"
         },
 
         "return": {
             "price": 80,
-            "departure": "20:00",
-            "arrival": "21:30"
+            "departure": "2026-11-13 20:00",
+            "arrival": "2026-11-13 21:30"
         }
     },
 
@@ -25,14 +36,14 @@ trips = [
 
         "outbound": {
             "price": 89,
-            "departure": "09:00",
-            "arrival": "10:30"
+            "departure": "2026-11-10 09:00",
+            "arrival": "2026-11-10 10:30"
         },
 
         "return": {
             "price": 75,
-            "departure": "19:00",
-            "arrival": "20:30"
+            "departure": "2026-11-13 19:00",
+            "arrival": "2026-11-13 20:30"
         }
     },
 
@@ -41,18 +52,32 @@ trips = [
 
         "outbound": {
             "price": 55,
-            "departure": "22:30",
-            "arrival": "00:00"
+            "departure": "2026-11-10 22:30",
+            "arrival": "2026-11-11 00:00"
         },
 
         "return": {
             "price": 60,
-            "departure": "06:00",
-            "arrival": "07:30"
+            "departure": "2026-11-13 06:00",
+            "arrival": "2026-11-13 07:30"
         }
     }
 ]
+]
+# ------------------------------------------
+# Convert string to datetime object
+#
+# Example:
+# "2026-11-10 22:30"
+# → datetime object
+# ------------------------------------------
 
+def parse_datetime(date_string):
+
+    return datetime.strptime(
+        date_string,
+        "%Y-%m-%d %H:%M"
+    )
 
 # ------------------------------------------
 # Convert "22:30" → minutes
@@ -187,6 +212,27 @@ def calculate_score(trip):
 
     return score
 
+# ------------------------------------------
+# Calculate cost per usable travel hour
+#
+# Formula:
+# Total Flight Price / Usable Travel Hours
+#
+# Lower cost per hour = better value
+#
+# If usable hours <= 0, return infinity
+# to avoid division by zero.
+# ------------------------------------------
+
+def calculate_cost_per_hour(trip):
+
+    total_price = trip["total_price"]
+    usable_hours = trip["usable_hours"]
+
+    if usable_hours <= 0:
+        return float("inf")
+
+    return total_price / usable_hours
 
 # ------------------------------------------
 # Calculate everything
@@ -202,6 +248,7 @@ for trip in trips:
 
     trip["score"] = calculate_score(trip)
 
+    trip["cost_per_hour"] = calculate_cost_per_hour(trip)
 
 # ------------------------------------------
 # Find cheapest trip
@@ -213,10 +260,8 @@ for trip in trips:
 
     if trip["total_price"] < cheapest_trip["total_price"]:
         cheapest_trip = trip
-
-
 # ------------------------------------------
-# Find best value trip
+# Find best trip
 # ------------------------------------------
 
 best_trip = trips[0]
@@ -225,6 +270,17 @@ for trip in trips:
 
     if trip["score"] < best_trip["score"]:
         best_trip = trip
+
+# ------------------------------------------
+# Find best value trip
+# ------------------------------------------
+
+best_value_trip = trips[0]
+
+for trip in trips:
+
+    if trip["cost_per_hour"] < best_value_trip["cost_per_hour"]:
+        best_value_trip = trip
 
 
 # ------------------------------------------
@@ -296,33 +352,20 @@ print(
 )
 
 print(
-    "Best value:",
+    "Best time-adjusted price:",
     best_trip["name"],
     "- Score:",
     best_trip["score"]
 )
+print(
+    "Best value trip:",
+    best_value_trip["name"]
+)
 
+print(
+    "Cost per usable hour: $",
+    round(best_value_trip["cost_per_hour"], 2)
+)
 print()
 
 
-# ------------------------------------------
-# Explain recommendation
-# ------------------------------------------
-
-if cheapest_trip != best_trip:
-
-    difference = (
-        best_trip["total_price"]
-        - cheapest_trip["total_price"]
-    )
-
-    print(
-        best_trip["name"],
-        "is recommended even though it costs $"
-        + str(difference),
-        "more."
-    )
-
-    print(
-        "It avoids inconvenient flight times."
-    )
