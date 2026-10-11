@@ -266,3 +266,26 @@ def calculate_departure_penalty(
         return (departure_hour - 22) * rate
 
     return 0.0
+# ------------------------------------------
+# Calculate Weighted Trip Score
+#
+# Combine trip cost, flight penalty,
+# and usable travel hours.
+#
+# A lower score indicates better value.
+# ------------------------------------------
+
+def calculate_weighted_score(
+    total_cost: float,
+    penalty: float,
+    usable_hours: float,
+    time_value: float = 5.0
+) -> float:
+
+    if time_value < 0:
+        raise ValueError("Time value cannot be negative.")
+
+    if usable_hours < 0:
+        raise ValueError("Usable hours cannot be negative.")
+
+    return total_cost + penalty - time_value * usable_hours

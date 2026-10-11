@@ -9,7 +9,8 @@ from calculations import (
     calculate_hotel_cost,
     calculate_total_trip_cost,
     calculate_score,
-    calculate_cost_per_hour
+    calculate_cost_per_hour,
+    calculate_weighted_score
 )
 # ------------------------------------------
 # Get user travel preferences
@@ -217,6 +218,14 @@ for trip in combinations:
 
     # Calculate cost per usable hour
     trip["cost_per_hour"] = calculate_cost_per_hour(trip)
+
+    # Calculate Weighted Trip Score
+    trip["weighted_score"] = calculate_weighted_score(
+        total_cost=trip["total_trip_cost"],
+        penalty=trip["penalty"],
+        usable_hours=trip["usable_hours"],
+        time_value=5.0
+    )
 # ------------------------------------------
 # Filter combinations by user preferences
 #
@@ -267,7 +276,17 @@ for trip in filtered_combinations:
     if trip["cost_per_hour"] < best_value_trip["cost_per_hour"]:
         best_value_trip = trip
 
+# ------------------------------------------
+# Find Best Overall Trip
+#
+# Select the trip with the lowest
+# weighted score.
+# ------------------------------------------
 
+best_overall_trip = min(
+    filtered_combinations,
+    key=lambda trip: trip["weighted_score"]
+)
 # ------------------------------------------
 # Print all trips
 # ------------------------------------------
@@ -379,6 +398,19 @@ print(
     "Cost per usable hour: $",
     round(best_value_trip["cost_per_hour"], 2)
 )
+# ------------------------------------------
+# Display Best Overall Trip
+# ------------------------------------------
+
+print("\n================================")
+print("         BEST OVERALL TRIP")
+print("================================")
+
+print(f"Trip: {best_overall_trip['name']}")
+print(f"Total Cost: ${best_overall_trip['total_trip_cost']:.2f}")
+print(f"Flight Penalty: ${best_overall_trip['penalty']:.2f}")
+print(f"Usable Hours: {best_overall_trip['usable_hours']:.1f}")
+print(f"Weighted Score: {best_overall_trip['weighted_score']:.2f}")
 print()
 
 
