@@ -243,12 +243,6 @@ for trip in filtered_combinations:
     if trip["total_trip_cost"] < cheapest_trip["total_trip_cost"]:
         cheapest_trip = trip
 
-# ------------------------------------------
-# Handle empty filtering results
-#
-# Stop execution if no trip combinations
-# satisfy the user's preferences.
-# ------------------------------------------
 
 
 # ------------------------------------------

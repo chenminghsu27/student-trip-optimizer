@@ -1,8 +1,9 @@
 import pytest
+from datetime import datetime
 from calculations import calculate_flight_penalty
 from calculations import calculate_total_price
 from calculations import calculate_usable_hours
-
+from calculations import calculate_departure_penalty
 # ------------------------------------------
 # Test Total Flight Price
 #
@@ -69,3 +70,58 @@ def test_usable_hours(arrival, departure, expected):
     }
 
     assert calculate_usable_hours(trip) == pytest.approx(expected)
+# ------------------------------------------
+# Test Continuous Flight Penalty
+#
+# Verify departure and arrival penalties
+# under the updated scoring algorithm.
+# ------------------------------------------
+
+@pytest.mark.parametrize(
+    "departure, arrival, expected",
+    [
+        ("2026-11-10 06:00", "2026-11-10 07:30", 15.0),
+        ("2026-11-10 07:00", "2026-11-10 08:30", 0.0),
+        ("2026-11-10 21:59", "2026-11-10 23:30", 30.0),
+        ("2026-11-10 22:00", "2026-11-10 23:30", 30.0),
+        ("2026-11-10 22:30", "2026-11-11 00:00", 37.5),
+    ]
+)
+def test_flight_penalty(departure, arrival, expected):
+
+    flight = {
+        "departure": departure,
+        "arrival": arrival
+    }
+
+    result = calculate_flight_penalty(flight)
+
+    assert result == pytest.approx(expected)
+# ------------------------------------------
+# Test Custom Flight Penalty Rate
+#
+# Verify that the departure penalty
+# responds to different rates.
+# ------------------------------------------
+
+@pytest.mark.parametrize(
+    "rate, expected",
+    [
+        (5.0, 10.0),
+        (15.0, 30.0),
+        (30.0, 60.0),
+    ]
+)
+def test_custom_flight_penalty(rate, expected):
+
+    flight = {
+        "departure": "2026-11-10 05:00",
+        "arrival": "2026-11-10 06:30"
+    }
+
+    result = calculate_flight_penalty(
+        flight,
+        rate=rate
+    )
+
+    assert result == pytest.approx(expected)

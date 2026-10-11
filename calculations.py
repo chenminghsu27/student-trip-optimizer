@@ -23,55 +23,55 @@ def calculate_total_price(trip):
 
     return outbound_price + return_price
 # ------------------------------------------
-# Calculate penalty for one flight
+# Calculate Flight Penalty
 #
-# Early departure: Before 07:00
-# Late departure: At or after 22:00
-# Late arrival: At or after 23:00
-# Early arrival: Before 05:00
+# Combine continuous departure penalties
+# with arrival time penalties.
 #
-# Each condition adds a $30 penalty.
+# Rate determines the penalty per hour
+# outside preferred departure times.
 # ------------------------------------------
 
-def calculate_flight_penalty(flight):
-
-    penalty = 0
+def calculate_flight_penalty(
+    flight: dict,
+    rate: float = 15.0
+) -> float:
 
     departure = parse_datetime(flight["departure"])
     arrival = parse_datetime(flight["arrival"])
 
-    departure_hour = departure.hour
-    arrival_hour = arrival.hour
+    penalty = calculate_departure_penalty(
+        departure,
+        rate
+    )
 
-    # Early departure
-    if departure_hour < 7:
+    if arrival.hour >= 23:
         penalty += 30
 
-    # Late departure
-    if departure_hour >= 22:
-        penalty += 30
-
-    # Late arrival
-    if arrival_hour >= 23:
-        penalty += 30
-
-    # Early morning arrival
-    if arrival_hour < 5:
+    if arrival.hour < 5:
         penalty += 30
 
     return penalty
 # ------------------------------------------
-# Calculate total penalty
+# Calculate Total Flight Penalty
+#
+# Apply the same penalty rate to both
+# outbound and return flights.
 # ------------------------------------------
 
-def calculate_total_penalty(trip):
+def calculate_total_penalty(
+    trip: dict,
+    rate: float = 15.0
+) -> float:
 
     outbound_penalty = calculate_flight_penalty(
-        trip["outbound"]
+        trip["outbound"],
+        rate
     )
 
     return_penalty = calculate_flight_penalty(
-        trip["return"]
+        trip["return"],
+        rate
     )
 
     return outbound_penalty + return_penalty
@@ -243,3 +243,26 @@ def calculate_cost_per_hour(trip):
         return float("inf")
 
     return total_cost / usable_hours
+# ------------------------------------------
+# Calculate Continuous Departure Penalty
+#
+# Apply a proportional penalty for flights
+# departing outside preferred hours.
+#
+# Rate: AUD penalty per hour
+# ------------------------------------------
+
+def calculate_departure_penalty(
+    departure: datetime,
+    rate: float = 15.0
+) -> float:
+
+    departure_hour = departure.hour + departure.minute / 60
+
+    if departure_hour < 7:
+        return (7 - departure_hour) * rate
+
+    if departure_hour >= 22:
+        return (departure_hour - 22) * rate
+
+    return 0.0
