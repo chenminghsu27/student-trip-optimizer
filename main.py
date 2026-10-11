@@ -65,22 +65,79 @@ trips = [
 # Each hotel contains:
 # - Hotel name
 # - Price per night
+# - Check-in time
+# - Check-out time
 # ------------------------------------------
 
 hotels = [
     {
         "name": "Budget Hostel",
-        "price_per_night": 45
+        "price_per_night": 45,
+        "check_in": "15:00",
+        "check_out": "10:00"
     },
     {
         "name": "City Hotel",
-        "price_per_night": 80
+        "price_per_night": 80,
+        "check_in": "14:00",
+        "check_out": "11:00"
     },
     {
         "name": "Premium Hotel",
-        "price_per_night": 120
+        "price_per_night": 120,
+        "check_in": "15:00",
+        "check_out": "12:00"
     }
-]
+]   
+# ------------------------------------------
+# Calculate hotel nights
+#
+# Estimate the number of hotel nights
+# based on flight arrival and departure.
+#
+# Assumptions:
+# - Early morning arrivals may require
+#   an additional hotel night.
+# - Travellers need accommodation
+#   until their return departure date.
+# ------------------------------------------
+
+def calculate_hotel_nights(trip):
+
+    arrival = parse_datetime(
+        trip["outbound"]["arrival"]
+    )
+
+    departure = parse_datetime(
+        trip["return"]["departure"]
+    )
+
+    check_in_time = parse_datetime(
+        "2026-01-01 " + trip["hotel"]["check_in"]
+    ).time()
+
+    check_out_time = parse_datetime(
+        "2026-01-01 " + trip["hotel"]["check_out"]
+    ).time()
+
+    # Calculate standard hotel nights
+    nights = (
+        departure.date() - arrival.date()
+    ).days
+
+    # Early morning arrival
+    # Assume the traveller wants immediate access
+    # to a hotel room.
+    if arrival.time() < check_in_time:
+        if arrival.hour < 6:
+            nights += 1
+
+    # Early morning return departure
+    # Does not automatically require another night.
+    # The last booked night already covers
+    # the early departure morning.
+
+    return max(0, nights)
 # ------------------------------------------
 # User preferences
 #
@@ -199,30 +256,15 @@ def calculate_total_price(trip):
 # ------------------------------------------
 # Calculate hotel cost
 #
-# Hotel Cost = Price Per Night × Nights
+# Hotel Cost = Hotel Nights × Price Per Night
 #
-# Nights are calculated using:
-# - Outbound arrival date
-# - Return departure date
-#
-# Assumption:
-# One hotel night per calendar night
-# between arrival and return departure.
+# Uses calculate_hotel_nights()
+# to estimate required accommodation.
 # ------------------------------------------
 
 def calculate_hotel_cost(trip):
 
-    arrival = parse_datetime(
-        trip["outbound"]["arrival"]
-    )
-
-    departure = parse_datetime(
-        trip["return"]["departure"]
-    )
-
-    nights = (departure.date() - arrival.date()).days
-
-    nights = max(0, nights)
+    nights = calculate_hotel_nights(trip)
 
     price_per_night = trip["hotel"]["price_per_night"]
 
