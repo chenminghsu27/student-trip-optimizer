@@ -1,94 +1,5 @@
 from datetime import datetime, timedelta
-# ------------------------------------------
-# Flight data
-#
-# Each trip contains:
-# - Outbound flight
-# - Return flight
-# - Flight price
-# - Departure and arrival datetime
-# ------------------------------------------
-
-trips = [
-    {
-        "name": "Trip A",
-
-        "outbound": {
-            "price": 65,
-            "departure": "2026-11-10 06:00",
-            "arrival": "2026-11-10 07:30"
-        },
-
-        "return": {
-            "price": 80,
-            "departure": "2026-11-13 20:00",
-            "arrival": "2026-11-13 21:30"
-        }
-    },
-
-    {
-        "name": "Trip B",
-
-        "outbound": {
-            "price": 89,
-            "departure": "2026-11-10 09:00",
-            "arrival": "2026-11-10 10:30"
-        },
-
-        "return": {
-            "price": 75,
-            "departure": "2026-11-13 19:00",
-            "arrival": "2026-11-13 20:30"
-        }
-    },
-
-    {
-        "name": "Trip C",
-
-        "outbound": {
-            "price": 55,
-            "departure": "2026-11-10 22:30",
-            "arrival": "2026-11-11 00:00"
-        },
-
-        "return": {
-            "price": 60,
-            "departure": "2026-11-13 06:00",
-            "arrival": "2026-11-13 07:30"
-        }
-    }
-]
-
-# ------------------------------------------
-# Hotel data
-#
-# Each hotel contains:
-# - Hotel name
-# - Price per night
-# - Check-in time
-# - Check-out time
-# ------------------------------------------
-
-hotels = [
-    {
-        "name": "Budget Hostel",
-        "price_per_night": 45,
-        "check_in": "15:00",
-        "check_out": "10:00"
-    },
-    {
-        "name": "City Hotel",
-        "price_per_night": 80,
-        "check_in": "14:00",
-        "check_out": "11:00"
-    },
-    {
-        "name": "Premium Hotel",
-        "price_per_night": 120,
-        "check_in": "15:00",
-        "check_out": "12:00"
-    }
-]   
+from data import trips,hotels
 # ------------------------------------------
 # Calculate hotel nights
 #
@@ -139,21 +50,98 @@ def calculate_hotel_nights(trip):
 
     return max(0, nights)
 # ------------------------------------------
-# User preferences
+# Get user travel preferences
 #
-# Define the user's travel requirements:
-# - Maximum total trip budget
-# - Earliest acceptable departure time
-# - Latest acceptable arrival time
-# - Whether overnight flights are allowed
+# Ask the user to enter:
+# - Maximum travel budget
+# - Earliest departure time
+# - Latest arrival time
+# - Overnight flight preference
+#
+# Return preferences as a dictionary.
 # ------------------------------------------
 
-preferences = {
-    "max_budget": 300,
-    "earliest_departure": "07:00",
-    "latest_arrival": "22:00",
-    "allow_overnight_flights": False
-}
+def get_user_preferences():
+
+    print()
+    print("================================")
+    print("     STUDENT TRIP OPTIMIZER")
+    print("================================")
+    print()
+
+    max_budget = get_valid_budget()
+
+    earliest_departure = get_valid_time(
+    "Earliest departure (HH:MM): "
+    )
+
+    latest_arrival = get_valid_time(
+    "Latest arrival (HH:MM): "
+    )
+
+    overnight_input = input(
+        "Allow overnight flights? (yes/no): "
+    ).strip().lower()
+
+    allow_overnight_flights = overnight_input == "yes"
+
+    preferences = {
+        "max_budget": max_budget,
+        "earliest_departure": earliest_departure,
+        "latest_arrival": latest_arrival,
+        "allow_overnight_flights": allow_overnight_flights
+    }
+
+    return preferences
+# ------------------------------------------
+# Get a valid budget from the user
+#
+# Keep asking until the user enters
+# a valid non-negative number.
+# ------------------------------------------
+
+def get_valid_budget():
+
+    while True:
+
+        try:
+            budget = float(
+                input("Enter your maximum budget ($): ")
+            )
+
+            if budget >= 0:
+                return budget
+
+            print("Budget cannot be negative.")
+
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+# ------------------------------------------
+# Get a valid time from the user
+#
+# Required format: HH:MM
+#
+# Example:
+# 07:00
+# 22:30
+# ------------------------------------------
+
+def get_valid_time(prompt):
+
+    while True:
+
+        user_input = input(prompt).strip()
+
+        try:
+            datetime.strptime(
+                user_input,
+                "%H:%M"
+            )
+
+            return user_input
+
+        except ValueError:
+            print("Invalid time. Please use HH:MM.")
 # ------------------------------------------
 # Generate flight and hotel combinations
 #
@@ -448,7 +436,7 @@ def check_preferences(trip, preferences):
 # ------------------------------------------
 # Calculate everything
 # ------------------------------------------
-
+preferences = get_user_preferences()
 for trip in combinations:
 
     # Calculate flight price
