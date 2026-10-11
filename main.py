@@ -82,6 +82,22 @@ hotels = [
     }
 ]
 # ------------------------------------------
+# User preferences
+#
+# Define the user's travel requirements:
+# - Maximum total trip budget
+# - Earliest acceptable departure time
+# - Latest acceptable arrival time
+# - Whether overnight flights are allowed
+# ------------------------------------------
+
+preferences = {
+    "max_budget": 300,
+    "earliest_departure": "07:00",
+    "latest_arrival": "22:00",
+    "allow_overnight_flights": False
+}
+# ------------------------------------------
 # Generate flight and hotel combinations
 #
 # Combine every flight option
@@ -333,7 +349,60 @@ def calculate_cost_per_hour(trip):
         return float("inf")
 
     return total_cost / usable_hours
+# ------------------------------------------
+# Check user preferences
+#
+# Return True if the trip meets all
+# user requirements.
+#
+# Return False if any requirement fails.
+# ------------------------------------------
 
+def check_preferences(trip, preferences):
+
+    # Check maximum budget
+    if trip["total_trip_cost"] > preferences["max_budget"]:
+        return False
+
+    earliest_departure = parse_datetime(
+        trip["outbound"]["departure"]
+    ).time()
+
+    latest_arrival = parse_datetime(
+        trip["outbound"]["arrival"]
+    ).time()
+
+    min_departure = parse_datetime(
+        "2026-01-01 " + preferences["earliest_departure"]
+    ).time()
+
+    max_arrival = parse_datetime(
+        "2026-01-01 " + preferences["latest_arrival"]
+    ).time()
+
+    # Check departure time
+    if earliest_departure < min_departure:
+        return False
+
+    # Check arrival time
+    if latest_arrival > max_arrival:
+        return False
+
+    # Check overnight flights
+    if not preferences["allow_overnight_flights"]:
+
+        outbound_departure = parse_datetime(
+            trip["outbound"]["departure"]
+        )
+
+        outbound_arrival = parse_datetime(
+            trip["outbound"]["arrival"]
+        )
+
+        if outbound_arrival.date() > outbound_departure.date():
+            return False
+
+    return True
 # ------------------------------------------
 # Calculate everything
 # ------------------------------------------
@@ -360,23 +429,35 @@ for trip in combinations:
 
     # Calculate cost per usable hour
     trip["cost_per_hour"] = calculate_cost_per_hour(trip)
+# ------------------------------------------
+# Filter combinations by user preferences
+#
+# Keep only trips that meet all
+# user requirements.
+# ------------------------------------------
 
+filtered_combinations = []
+
+for trip in combinations:
+
+    if check_preferences(trip, preferences):
+        filtered_combinations.append(trip)
 # ------------------------------------------
 # Find cheapest trip
 # ------------------------------------------
 
-cheapest_trip = combinations[0]
+cheapest_trip = filtered_combinations[0]
 
-for trip in combinations:
+for trip in filtered_combinations:
     if trip["total_trip_cost"] < cheapest_trip["total_trip_cost"]:
         cheapest_trip = trip
 # ------------------------------------------
 # Find best trip
 # ------------------------------------------
 
-best_trip = combinations[0]
+best_trip = filtered_combinations[0]
 
-for trip in combinations:
+for trip in filtered_combinations:
 
     if trip["score"] < best_trip["score"]:
         best_trip = trip
@@ -385,9 +466,9 @@ for trip in combinations:
 # Find best value trip
 # ------------------------------------------
 
-best_value_trip = combinations[0]
+best_value_trip = filtered_combinations[0]
 
-for trip in combinations:
+for trip in filtered_combinations:
 
     if trip["cost_per_hour"] < best_value_trip["cost_per_hour"]:
         best_value_trip = trip
@@ -463,7 +544,17 @@ for trip in combinations:
 #         round(trip["cost_per_hour"], 2)
 #     )
 #     print("----------------------------")
+# ------------------------------------------
+# Check if any trips meet user preferences
+#
+# Prevent errors when no valid trips exist.
+# ------------------------------------------
 
+if not filtered_combinations:
+
+    print("No trips match your preferences.")
+
+    raise SystemExit
 
 # ------------------------------------------
 # Results
