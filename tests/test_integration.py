@@ -1,6 +1,6 @@
 import pytest
 
-from main import generate_recommendations
+from recommendation_engine import generate_recommendations
 
 
 # ------------------------------------------
