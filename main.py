@@ -10,7 +10,8 @@ from calculations import (
     calculate_total_trip_cost,
     calculate_score,
     calculate_cost_per_hour,
-    calculate_weighted_score
+    calculate_weighted_score,
+    find_pareto_frontier
 )
 # ------------------------------------------
 # Get user travel preferences
@@ -253,6 +254,7 @@ if not filtered_combinations:
     print("\nNo trips match your preferences.")
     print("Try increasing your budget or adjusting your flight preferences.")
     raise SystemExit(0)
+pareto_trips = find_pareto_frontier(filtered_combinations)
 # ------------------------------------------
 # Find cheapest trip
 # ------------------------------------------
@@ -295,7 +297,7 @@ for trip in filtered_combinations:
 # ------------------------------------------
 
 best_overall_trip = min(
-    filtered_combinations,
+    pareto_trips,
     key=lambda trip: trip["weighted_score"]
 )
 # ------------------------------------------
@@ -422,6 +424,23 @@ print(f"Total Cost: ${best_overall_trip['total_trip_cost']:.2f}")
 print(f"Flight Penalty: ${best_overall_trip['penalty']:.2f}")
 print(f"Usable Hours: {best_overall_trip['usable_hours']:.1f}")
 print(f"Weighted Score: {best_overall_trip['weighted_score']:.2f}")
+# ------------------------------------------
+# Display Pareto Optimization Summary
+#
+# Show how many trip combinations
+# remain after optimization.
+# ------------------------------------------
+
+print("\n================================")
+print("       PARETO OPTIMIZATION")
+print("================================")
+
+print(f"Filtered Trips: {len(filtered_combinations)}")
+print(f"Pareto Optimal Trips: {len(pareto_trips)}")
+print(
+    f"Dominated Trips Removed: "
+    f"{len(filtered_combinations) - len(pareto_trips)}"
+)
 print()
 
 

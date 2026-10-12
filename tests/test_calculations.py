@@ -6,6 +6,7 @@ from calculations import calculate_total_price
 from calculations import calculate_usable_hours
 from calculations import calculate_departure_penalty
 from calculations import calculate_weighted_score
+from calculations import dominates, find_pareto_frontier
 # ------------------------------------------
 # Test Total Flight Price
 #
@@ -256,3 +257,80 @@ def test_weighted_trip_ranking(time_value, expected_trip):
 def test_travel_style_configuration(style, expected):
 
     assert TRAVEL_STYLES[style] == expected
+# ------------------------------------------
+# Test Pareto Dominance
+#
+# Verify whether one trip dominates
+# another across three objectives.
+# ------------------------------------------
+
+@pytest.mark.parametrize(
+    "a, b, expected",
+    [
+        (
+            {"total_trip_cost": 200, "usable_hours": 40, "penalty": 10},
+            {"total_trip_cost": 250, "usable_hours": 35, "penalty": 20},
+            True
+        ),
+        (
+            {"total_trip_cost": 250, "usable_hours": 35, "penalty": 20},
+            {"total_trip_cost": 200, "usable_hours": 40, "penalty": 10},
+            False
+        ),
+        (
+            {"total_trip_cost": 200, "usable_hours": 30, "penalty": 0},
+            {"total_trip_cost": 200, "usable_hours": 35, "penalty": 30},
+            False
+        ),
+        (
+            {"total_trip_cost": 200, "usable_hours": 40, "penalty": 10},
+            {"total_trip_cost": 200, "usable_hours": 40, "penalty": 10},
+            False
+        ),
+    ]
+)
+def test_dominates(a, b, expected):
+
+    assert dominates(a, b) is expected
+# ------------------------------------------
+# Test Pareto Frontier
+#
+# Verify that dominated trips are
+# removed from the candidate list.
+# ------------------------------------------
+
+def test_find_pareto_frontier():
+
+    trips = [
+        {"name": "A", "total_trip_cost": 200, "usable_hours": 30, "penalty": 0},
+        {"name": "B", "total_trip_cost": 250, "usable_hours": 40, "penalty": 20},
+        {"name": "C", "total_trip_cost": 230, "usable_hours": 35, "penalty": 10},
+        {"name": "D", "total_trip_cost": 280, "usable_hours": 38, "penalty": 0},
+        {"name": "E", "total_trip_cost": 200, "usable_hours": 35, "penalty": 30},
+    ]
+
+    frontier = find_pareto_frontier(trips)
+
+    frontier_names = {trip["name"] for trip in frontier}
+
+    assert frontier_names == {"A", "B", "C", "D", "E"}
+# ------------------------------------------
+# Test Dominated Trip Removal
+#
+# Verify that an inferior trip
+# is excluded from the frontier.
+# ------------------------------------------
+
+def test_pareto_removes_dominated_trip():
+
+    trips = [
+        {"name": "A", "total_trip_cost": 200, "usable_hours": 40, "penalty": 10},
+        {"name": "B", "total_trip_cost": 250, "usable_hours": 35, "penalty": 20},
+        {"name": "C", "total_trip_cost": 180, "usable_hours": 30, "penalty": 5},
+    ]
+
+    frontier = find_pareto_frontier(trips)
+
+    frontier_names = {trip["name"] for trip in frontier}
+
+    assert frontier_names == {"A", "C"}

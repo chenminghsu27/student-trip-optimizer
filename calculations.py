@@ -289,3 +289,61 @@ def calculate_weighted_score(
         raise ValueError("Usable hours cannot be negative.")
 
     return total_cost + penalty - time_value * usable_hours
+# ------------------------------------------
+# Check Pareto Dominance
+#
+# Trip A dominates Trip B if:
+# - A costs no more than B
+# - A provides at least as many usable hours
+# - A has no greater flight penalty
+# - A is strictly better in at least one
+#   objective
+# ------------------------------------------
+
+def dominates(a: dict, b: dict) -> bool:
+
+    no_worse = (
+        a["total_trip_cost"] <= b["total_trip_cost"]
+        and
+        a["usable_hours"] >= b["usable_hours"]
+        and
+        a["penalty"] <= b["penalty"]
+    )
+
+    strictly_better = (
+        a["total_trip_cost"] < b["total_trip_cost"]
+        or
+        a["usable_hours"] > b["usable_hours"]
+        or
+        a["penalty"] < b["penalty"]
+    )
+
+    return no_worse and strictly_better
+# ------------------------------------------
+# Find Pareto Frontier
+#
+# Keep only trips that are not
+# dominated by another trip.
+# ------------------------------------------
+
+def find_pareto_frontier(trips: list[dict]) -> list[dict]:
+
+    frontier = []
+
+    for trip in trips:
+
+        is_dominated = False
+
+        for other in trips:
+
+            if other is trip:
+                continue
+
+            if dominates(other, trip):
+                is_dominated = True
+                break
+
+        if not is_dominated:
+            frontier.append(trip)
+
+    return frontier
