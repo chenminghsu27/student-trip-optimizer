@@ -119,248 +119,183 @@ def get_valid_time(prompt):
         except ValueError:
             print("Invalid time. Please use HH:MM.")
 # ------------------------------------------
-# Generate flight and hotel combinations
+# Generate Trip Combinations
 #
 # Combine every flight option
 # with every available hotel.
 # ------------------------------------------
 
-combinations = []
+def generate_combinations(trips: list[dict], hotels: list[dict]) -> list[dict]:
 
-for trip in trips:
+    combinations = []
 
-    for hotel in hotels:
+    for trip in trips:
+        for hotel in hotels:
 
-        combination = {
-            "name": trip["name"] + " + " + hotel["name"],
-            "outbound": trip["outbound"],
-            "return": trip["return"],
-            "hotel": hotel
-        }
-        combinations.append(combination)
+            combination = {
+                "name": trip["name"] + " + " + hotel["name"],
+                "outbound": trip["outbound"],
+                "return": trip["return"],
+                "hotel": hotel
+            }
 
+            combinations.append(combination)
 
-
-
+    return combinations
 # ------------------------------------------
-# Calculate everything
+# Calculate Trip Metrics
+#
+# Calculate all values required
+# for filtering and ranking.
 # ------------------------------------------
-preferences = get_user_preferences()
-time_value = TRAVEL_STYLES[preferences["travel_style"]]
-for trip in combinations:
 
-    # Calculate flight price
+def calculate_trip_metrics(
+    trip: dict,
+    time_value: float
+) -> dict:
+
     trip["total_price"] = calculate_total_price(trip)
 
-    # Calculate hotel cost
     trip["hotel_cost"] = calculate_hotel_cost(trip)
 
-    # Calculate total trip cost
     trip["total_trip_cost"] = calculate_total_trip_cost(trip)
 
-    # Calculate flight penalty
     trip["penalty"] = calculate_total_penalty(trip)
 
-    # Calculate usable travel hours
     trip["usable_hours"] = calculate_usable_hours(trip)
 
-    # Calculate time-adjusted score
     trip["score"] = calculate_score(trip)
 
-    # Calculate cost per usable hour
     trip["cost_per_hour"] = calculate_cost_per_hour(trip)
 
-    # Calculate Weighted Trip Score
     trip["weighted_score"] = calculate_weighted_score(
         total_cost=trip["total_trip_cost"],
         penalty=trip["penalty"],
         usable_hours=trip["usable_hours"],
         time_value=time_value
     )
+
+    return trip
 # ------------------------------------------
-# Filter combinations by user preferences
+# Main Application
 #
-# Keep only trips that meet all
-# user requirements.
+# Coordinate the complete trip
+# recommendation workflow.
 # ------------------------------------------
 
-filtered_combinations = []
+def main():
 
-for trip in combinations:
-    if check_preferences(trip, preferences):
-        filtered_combinations.append(trip)
-if not filtered_combinations:
-    print("\nNo trips match your preferences.")
-    print("Try increasing your budget or adjusting your flight preferences.")
-    raise SystemExit(0)
-pareto_trips = find_pareto_frontier(filtered_combinations)
-# ------------------------------------------
-# Rank Trip Combinations
-#
-# Find the best trip using different
-# evaluation metrics.
-# ------------------------------------------
+    # ------------------------------------------
+    # Get User Preferences
+    # ------------------------------------------
 
-cheapest_trip = find_best_trip(
-    filtered_combinations,
-    "total_trip_cost"
-)
+    preferences = get_user_preferences()
 
-best_trip = find_best_trip(
-    filtered_combinations,
-    "score"
-)
+    time_value = TRAVEL_STYLES[
+        preferences["travel_style"]
+    ]
 
-best_value_trip = find_best_trip(
-    filtered_combinations,
-    "cost_per_hour"
-)
+    # ------------------------------------------
+    # Generate Trip Combinations
+    # ------------------------------------------
 
-best_overall_trip = find_best_trip(
-    pareto_trips,
-    "weighted_score"
-)
-# ------------------------------------------
-# Print all trips
-# ------------------------------------------
+    combinations = generate_combinations(
+        trips,
+        hotels
+    )
 
-# print()
-# print("================================")
-# print("       STUDENT TRIP FINDER")
-# print("================================")
-# print()
+    # ------------------------------------------
+    # Calculate Trip Metrics
+    # ------------------------------------------
 
+    for trip in combinations:
+        calculate_trip_metrics(trip, time_value)
 
-# for trip in trips:
+    # ------------------------------------------
+    # Filter Trips
+    # ------------------------------------------
 
-#     print(trip["name"])
+    filtered_combinations = [
+        trip
+        for trip in combinations
+        if check_preferences(trip, preferences)
+    ]
 
-#     print(
-#         "Outbound:",
-#         trip["outbound"]["departure"],
-#         "→",
-#         trip["outbound"]["arrival"]
-#     )
+    if not filtered_combinations:
+        print("\nNo trips match your preferences.")
+        return
 
-#     print(
-#         "Return:",
-#         trip["return"]["departure"],
-#         "→",
-#         trip["return"]["arrival"]
-#     )
+    # ------------------------------------------
+    # Apply Pareto Optimization
+    # ------------------------------------------
 
-#     print(
-#         "Flight price: $"
-#         + str(trip["total_price"])
-#     )
+    pareto_trips = find_pareto_frontier(
+        filtered_combinations
+    )
 
-#     print(
-#         "Penalty: $"
-#         + str(trip["penalty"])
-#     )
+    # ------------------------------------------
+    # Rank Trips
+    # ------------------------------------------
 
-#     print(
-#         "Student Value Score:",
-#         trip["score"]
-#     )
+    cheapest_trip = find_best_trip(
+        filtered_combinations,
+        "total_trip_cost"
+    )
 
-#     print(
-#         "Usable travel time:",
-#         round(trip["usable_hours"], 1),
-#         "hours"
-#     )
+    best_trip = find_best_trip(
+        filtered_combinations,
+        "score"
+    )
 
-#     print(
-#     "Hotel:",
-#     trip["hotel"]["name"]
-#     )
+    best_value_trip = find_best_trip(
+        filtered_combinations,
+        "cost_per_hour"
+    )
 
-#     print(
-#         "Hotel cost: $",
-#         trip["hotel_cost"]
-#     )
+    best_overall_trip = find_best_trip(
+        pareto_trips,
+        "weighted_score"
+    )
 
-#     print(
-#         "Total trip cost: $",
-#         trip["total_trip_cost"]
-#     )
+    # ------------------------------------------
+    # Display Results
+    # ------------------------------------------
 
-#     print(
-#         "Cost per usable hour: $",
-#         round(trip["cost_per_hour"], 2)
-#     )
-#     print("----------------------------")
-# ------------------------------------------
-# Check if any trips meet user preferences
-#
-# Prevent errors when no valid trips exist.
-# ------------------------------------------
+    print("\n================================")
+    print("              RESULTS")
+    print("================================")
 
-if not filtered_combinations:
+    print(
+        f"Cheapest Trip: {cheapest_trip['name']} "
+        f"(${cheapest_trip['total_trip_cost']:.2f})"
+    )
 
-    print("No trips match your preferences.")
+    print(
+        f"Best Time-Adjusted Trip: {best_trip['name']} "
+        f"(Score: {best_trip['score']:.2f})"
+    )
 
-    raise SystemExit
+    print(
+        f"Best Value Trip: {best_value_trip['name']} "
+        f"(${best_value_trip['cost_per_hour']:.2f}/hour)"
+    )
 
-# ------------------------------------------
-# Results
-# ------------------------------------------
+    print(
+        f"Best Overall Trip: {best_overall_trip['name']} "
+        f"(Score: {best_overall_trip['weighted_score']:.2f})"
+    )
 
-print()
-print("RESULT")
-print("================================")
+    print("\n================================")
+    print("       PARETO OPTIMIZATION")
+    print("================================")
 
-print(
-    "Cheapest trip:",
-    cheapest_trip["name"],
-    "- $"
-    + str(cheapest_trip["total_trip_cost"])
-)
-print(
-    "Best time-adjusted price:",
-    best_trip["name"],
-    "- Score:",
-    best_trip["score"]
-)
-print(
-    "Best value trip:",
-    best_value_trip["name"]
-)
-
-print(
-    "Cost per usable hour: $",
-    round(best_value_trip["cost_per_hour"], 2)
-)
-# ------------------------------------------
-# Display Best Overall Trip
-# ------------------------------------------
-
-print("\n================================")
-print("         BEST OVERALL TRIP")
-print("================================")
-
-print(f"Trip: {best_overall_trip['name']}")
-print(f"Total Cost: ${best_overall_trip['total_trip_cost']:.2f}")
-print(f"Flight Penalty: ${best_overall_trip['penalty']:.2f}")
-print(f"Usable Hours: {best_overall_trip['usable_hours']:.1f}")
-print(f"Weighted Score: {best_overall_trip['weighted_score']:.2f}")
-# ------------------------------------------
-# Display Pareto Optimization Summary
-#
-# Show how many trip combinations
-# remain after optimization.
-# ------------------------------------------
-
-print("\n================================")
-print("       PARETO OPTIMIZATION")
-print("================================")
-
-print(f"Filtered Trips: {len(filtered_combinations)}")
-print(f"Pareto Optimal Trips: {len(pareto_trips)}")
-print(
-    f"Dominated Trips Removed: "
-    f"{len(filtered_combinations) - len(pareto_trips)}"
-)
-print()
+    print(f"Filtered Trips: {len(filtered_combinations)}")
+    print(f"Pareto Optimal Trips: {len(pareto_trips)}")
+    print(
+        "Dominated Trips Removed: "
+        f"{len(filtered_combinations) - len(pareto_trips)}"
+    )
+if __name__ == "__main__":
+    main()
 
 
