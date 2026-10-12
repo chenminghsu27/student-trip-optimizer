@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from data import trips,hotels
+from data import trips,hotels,TRAVEL_STYLES
 from calculations import (
     parse_datetime,
     calculate_total_price,
@@ -45,14 +45,24 @@ def get_user_preferences():
     overnight_input = input(
         "Allow overnight flights? (yes/no): "
     ).strip().lower()
+    while True:
 
+        travel_style = input(
+            "Travel style (budget/balanced/time-focused): "
+        ).strip().lower()
+
+        if travel_style in TRAVEL_STYLES:
+            break
+
+        print("Invalid travel style. Please try again.")
     allow_overnight_flights = overnight_input == "yes"
 
     preferences = {
         "max_budget": max_budget,
         "earliest_departure": earliest_departure,
         "latest_arrival": latest_arrival,
-        "allow_overnight_flights": allow_overnight_flights
+        "allow_overnight_flights": allow_overnight_flights,
+        "travel_style": travel_style
     }
 
     return preferences
@@ -196,6 +206,7 @@ def check_preferences(trip, preferences):
 # Calculate everything
 # ------------------------------------------
 preferences = get_user_preferences()
+time_value = TRAVEL_STYLES[preferences["travel_style"]]
 for trip in combinations:
 
     # Calculate flight price
@@ -224,7 +235,7 @@ for trip in combinations:
         total_cost=trip["total_trip_cost"],
         penalty=trip["penalty"],
         usable_hours=trip["usable_hours"],
-        time_value=5.0
+        time_value=time_value
     )
 # ------------------------------------------
 # Filter combinations by user preferences

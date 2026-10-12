@@ -1,5 +1,6 @@
 import pytest
 from datetime import datetime
+from data import TRAVEL_STYLES
 from calculations import calculate_flight_penalty
 from calculations import calculate_total_price
 from calculations import calculate_usable_hours
@@ -234,3 +235,24 @@ def test_weighted_trip_ranking(time_value, expected_trip):
     )
 
     assert best_trip["name"] == expected_trip
+
+
+
+# ------------------------------------------
+# Test Travel Style Configuration
+#
+# Verify that travel styles map to
+# the correct time values.
+# ------------------------------------------
+
+@pytest.mark.parametrize(
+    "style, expected",
+    [
+        ("budget", 1.0),
+        ("balanced", 5.0),
+        ("time-focused", 10.0),
+    ]
+)
+def test_travel_style_configuration(style, expected):
+
+    assert TRAVEL_STYLES[style] == expected

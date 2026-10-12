@@ -87,4 +87,16 @@ hotels = [
         "check_in": "15:00",
         "check_out": "12:00"
     }
-]   
+]  
+# ------------------------------------------
+# Travel Style Configuration
+#
+# Define the monetary value assigned
+# to each usable travel hour.
+# ------------------------------------------
+
+TRAVEL_STYLES = {
+    "budget": 1.0,
+    "balanced": 5.0,
+    "time-focused": 10.0
+} 
