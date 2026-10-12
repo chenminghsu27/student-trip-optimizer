@@ -2,6 +2,13 @@ from datetime import datetime, timedelta
 from data import trips,hotels,TRAVEL_STYLES
 from ranking import find_best_trip
 from filters import check_preferences
+from models import (
+    FlightItinerary,
+    Hotel,
+    Trip,
+    ScoredTrip,
+    Preferences
+)
 from calculations import (
     parse_datetime,
     calculate_total_price,
@@ -130,14 +137,17 @@ def get_valid_time(prompt):
 # with every available hotel.
 # ------------------------------------------
 
-def generate_combinations(trips: list[dict], hotels: list[dict]) -> list[dict]:
+def generate_combinations(
+    trips: list[FlightItinerary],
+    hotels: list[Hotel]
+) -> list[Trip]:
 
-    combinations = []
+    combinations: list[Trip] = []
 
     for trip in trips:
         for hotel in hotels:
 
-            combination = {
+            combination: Trip = {
                 "name": trip["name"] + " + " + hotel["name"],
                 "outbound": trip["outbound"],
                 "return": trip["return"],
