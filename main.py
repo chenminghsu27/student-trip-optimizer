@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from data import trips,hotels,TRAVEL_STYLES
+from ranking import find_best_trip
+from filters import check_preferences
 from calculations import (
     parse_datetime,
     calculate_total_price,
@@ -138,71 +140,8 @@ for trip in trips:
         combinations.append(combination)
 
 
-# ------------------------------------------
-# Convert "22:30" → minutes
-# ------------------------------------------
 
-def time_to_minutes(time):
-    parts = time.split(":")
 
-    hour = int(parts[0])
-    minute = int(parts[1])
-
-    return hour * 60 + minute
-# ------------------------------------------
-# Check user preferences
-#
-# Return True if the trip meets all
-# user requirements.
-#
-# Return False if any requirement fails.
-# ------------------------------------------
-
-def check_preferences(trip, preferences):
-
-    # Check maximum budget
-    if trip["total_trip_cost"] > preferences["max_budget"]:
-        return False
-
-    earliest_departure = parse_datetime(
-        trip["outbound"]["departure"]
-    ).time()
-
-    latest_arrival = parse_datetime(
-        trip["outbound"]["arrival"]
-    ).time()
-
-    min_departure = parse_datetime(
-        "2026-01-01 " + preferences["earliest_departure"]
-    ).time()
-
-    max_arrival = parse_datetime(
-        "2026-01-01 " + preferences["latest_arrival"]
-    ).time()
-
-    # Check departure time
-    if earliest_departure < min_departure:
-        return False
-
-    # Check arrival time
-    if latest_arrival > max_arrival:
-        return False
-
-    # Check overnight flights
-    if not preferences["allow_overnight_flights"]:
-
-        outbound_departure = parse_datetime(
-            trip["outbound"]["departure"]
-        )
-
-        outbound_arrival = parse_datetime(
-            trip["outbound"]["arrival"]
-        )
-
-        if outbound_arrival.date() > outbound_departure.date():
-            return False
-
-    return True
 # ------------------------------------------
 # Calculate everything
 # ------------------------------------------
@@ -256,49 +195,30 @@ if not filtered_combinations:
     raise SystemExit(0)
 pareto_trips = find_pareto_frontier(filtered_combinations)
 # ------------------------------------------
-# Find cheapest trip
-# ------------------------------------------
-
-cheapest_trip = filtered_combinations[0]
-
-for trip in filtered_combinations:
-    if trip["total_trip_cost"] < cheapest_trip["total_trip_cost"]:
-        cheapest_trip = trip
-
-
-
-# ------------------------------------------
-# Find best trip
-# ------------------------------------------
-
-best_trip = filtered_combinations[0]
-
-for trip in filtered_combinations:
-
-    if trip["score"] < best_trip["score"]:
-        best_trip = trip
-
-# ------------------------------------------
-# Find best value trip
-# ------------------------------------------
-
-best_value_trip = filtered_combinations[0]
-
-for trip in filtered_combinations:
-
-    if trip["cost_per_hour"] < best_value_trip["cost_per_hour"]:
-        best_value_trip = trip
-
-# ------------------------------------------
-# Find Best Overall Trip
+# Rank Trip Combinations
 #
-# Select the trip with the lowest
-# weighted score.
+# Find the best trip using different
+# evaluation metrics.
 # ------------------------------------------
 
-best_overall_trip = min(
+cheapest_trip = find_best_trip(
+    filtered_combinations,
+    "total_trip_cost"
+)
+
+best_trip = find_best_trip(
+    filtered_combinations,
+    "score"
+)
+
+best_value_trip = find_best_trip(
+    filtered_combinations,
+    "cost_per_hour"
+)
+
+best_overall_trip = find_best_trip(
     pareto_trips,
-    key=lambda trip: trip["weighted_score"]
+    "weighted_score"
 )
 # ------------------------------------------
 # Print all trips
