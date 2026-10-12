@@ -15,6 +15,11 @@ from calculations import (
     calculate_weighted_score,
     find_pareto_frontier
 )
+from validation import (
+    validate_flight,
+    validate_hotel,
+    validate_preferences
+)
 # ------------------------------------------
 # Get user travel preferences
 #
@@ -195,7 +200,28 @@ def generate_recommendations(
     hotels: list[dict],
     preferences: dict
 ) -> dict:
+        # ------------------------------------------
+    # Validate Input Data
+    #
+    # Reject invalid data before
+    # generating trip combinations.
+    # ------------------------------------------
 
+    validate_preferences(preferences)
+
+    for trip in flights:
+
+        for direction in ("outbound", "return"):
+
+            if direction not in trip:
+                raise ValueError(
+                    f"Missing flight direction: {direction}"
+                )
+
+            validate_flight(trip[direction])
+
+    for hotel in hotels:
+        validate_hotel(hotel)
     time_value = TRAVEL_STYLES[
         preferences["travel_style"]
     ]
