@@ -182,39 +182,35 @@ def calculate_trip_metrics(
 # Coordinate the complete trip
 # recommendation workflow.
 # ------------------------------------------
+# ------------------------------------------
+# Generate Trip Recommendations
+#
+# Process flight and hotel data using
+# user preferences and return the
+# recommended trip combinations.
+# ------------------------------------------
 
-def main():
-
-    # ------------------------------------------
-    # Get User Preferences
-    # ------------------------------------------
-
-    preferences = get_user_preferences()
+def generate_recommendations(
+    flights: list[dict],
+    hotels: list[dict],
+    preferences: dict
+) -> dict:
 
     time_value = TRAVEL_STYLES[
         preferences["travel_style"]
     ]
 
-    # ------------------------------------------
-    # Generate Trip Combinations
-    # ------------------------------------------
-
+    # Generate combinations
     combinations = generate_combinations(
-        trips,
+        flights,
         hotels
     )
 
-    # ------------------------------------------
-    # Calculate Trip Metrics
-    # ------------------------------------------
-
+    # Calculate metrics
     for trip in combinations:
         calculate_trip_metrics(trip, time_value)
 
-    # ------------------------------------------
-    # Filter Trips
-    # ------------------------------------------
-
+    # Filter trips
     filtered_combinations = [
         trip
         for trip in combinations
@@ -222,41 +218,64 @@ def main():
     ]
 
     if not filtered_combinations:
-        print("\nNo trips match your preferences.")
-        return
+        return {
+            "filtered_trips": [],
+            "pareto_trips": [],
+            "recommendations": {}
+        }
 
-    # ------------------------------------------
-    # Apply Pareto Optimization
-    # ------------------------------------------
-
+    # Pareto optimization
     pareto_trips = find_pareto_frontier(
         filtered_combinations
     )
 
-    # ------------------------------------------
-    # Rank Trips
-    # ------------------------------------------
+    # Rank trips
+    recommendations = {
+        "cheapest": find_best_trip(
+            filtered_combinations,
+            "total_trip_cost"
+        ),
+        "best_time_adjusted": find_best_trip(
+            filtered_combinations,
+            "score"
+        ),
+        "best_value": find_best_trip(
+            filtered_combinations,
+            "cost_per_hour"
+        ),
+        "best_overall": find_best_trip(
+            pareto_trips,
+            "weighted_score"
+        )
+    }
 
-    cheapest_trip = find_best_trip(
-        filtered_combinations,
-        "total_trip_cost"
+    return {
+        "filtered_trips": filtered_combinations,
+        "pareto_trips": pareto_trips,
+        "recommendations": recommendations
+    }
+def main():
+    preferences = get_user_preferences()
+
+    result = generate_recommendations(
+        trips,
+        hotels,
+        preferences
     )
 
-    best_trip = find_best_trip(
-        filtered_combinations,
-        "score"
-    )
+    filtered_combinations = result["filtered_trips"]
 
-    best_value_trip = find_best_trip(
-        filtered_combinations,
-        "cost_per_hour"
-    )
+    if not filtered_combinations:
+        print("\nNo trips match your preferences.")
+        return
 
-    best_overall_trip = find_best_trip(
-        pareto_trips,
-        "weighted_score"
-    )
+    pareto_trips = result["pareto_trips"]
+    recommendations = result["recommendations"]
 
+    cheapest_trip = recommendations["cheapest"]
+    best_trip = recommendations["best_time_adjusted"]
+    best_value_trip = recommendations["best_value"]
+    best_overall_trip = recommendations["best_overall"]
     # ------------------------------------------
     # Display Results
     # ------------------------------------------
