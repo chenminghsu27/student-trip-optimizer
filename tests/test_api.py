@@ -59,9 +59,15 @@ def test_valid_recommendation_request():
 
     result = response.json()
 
-    assert "filtered_trips" in result
-    assert "pareto_trips" in result
-    assert "recommendations" in result
+    assert result["status"] == "success"
+    assert "data" in result
+    assert "meta" in result
+    assert "recommendations" in result["data"]
+    assert "pareto_trips" in result["data"] 
+    assert result["meta"]["filtered_count"] >= 0
+    assert result["meta"]["pareto_count"] == len(
+    result["data"]["pareto_trips"]
+    )
 
 
 # ------------------------------------------
@@ -112,3 +118,91 @@ def test_invalid_travel_style():
     )
 
     assert response.status_code == 422
+# ------------------------------------------
+# Test Recommendation Validation Error
+#
+# Verify that engine validation errors
+# are converted into HTTP 400 responses.
+# ------------------------------------------
+
+def test_recommendation_validation_error(
+    monkeypatch
+):
+
+    def mock_generate_recommendations(
+        flights,
+        hotels,
+        preferences
+    ):
+
+        raise ValueError(
+            "Invalid travel preferences."
+        )
+
+    monkeypatch.setattr(
+        "api.generate_recommendations",
+        mock_generate_recommendations
+    )
+
+    payload = {
+        "max_budget": 1000,
+        "earliest_departure": "07:00",
+        "latest_arrival": "23:59",
+        "allow_overnight_flights": True,
+        "travel_style": "balanced"
+    }
+
+    response = client.post(
+        "/recommendations",
+        json=payload
+    )
+
+    assert response.status_code == 400
+
+    assert response.json() == {
+        "detail": "Invalid travel preferences."
+    }
+# ------------------------------------------
+# Test Unexpected Server Error
+#
+# Verify that internal exceptions
+# return a safe HTTP 500 response.
+# ------------------------------------------
+
+def test_unexpected_server_error(
+    monkeypatch
+):
+
+    def mock_generate_recommendations(
+        flights,
+        hotels,
+        preferences
+    ):
+
+        raise RuntimeError(
+            "Internal database connection failed."
+        )
+
+    monkeypatch.setattr(
+        "api.generate_recommendations",
+        mock_generate_recommendations
+    )
+
+    payload = {
+        "max_budget": 1000,
+        "earliest_departure": "07:00",
+        "latest_arrival": "23:59",
+        "allow_overnight_flights": True,
+        "travel_style": "balanced"
+    }
+
+    response = client.post(
+        "/recommendations",
+        json=payload
+    )
+
+    assert response.status_code == 500
+
+    assert response.json() == {
+        "detail": "Internal server error."
+    }

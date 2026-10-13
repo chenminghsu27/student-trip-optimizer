@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI
 from typing import Literal
 from datetime import datetime
@@ -7,6 +8,7 @@ from data import trips, hotels
 
 from recommendation_engine import generate_recommendations
 
+from fastapi import HTTPException
 # ------------------------------------------
 # Initialize FastAPI Application
 #
@@ -17,10 +19,9 @@ from recommendation_engine import generate_recommendations
 app = FastAPI(
     title="Student Trip Optimizer API",
     description="Flight and hotel recommendation system",
-    version="5.0.0"
+    version="5.0.0",
 )
-
-
+logger = logging.getLogger(__name__)
 # ------------------------------------------
 # Root Endpoint
 #
@@ -90,22 +91,90 @@ class TripPreferencesRequest(BaseModel):
 
         return value
 # ------------------------------------------
-# Generate Trip Recommendations
+# Recommendation Data Model
 #
-# Receive user preferences through
-# an HTTP POST request and return
-# recommended trip combinations.
+# Define the structure of trip
+# recommendation results.
 # ------------------------------------------
 
-@app.post("/recommendations")
+class RecommendationData(BaseModel):
+
+    recommendations: dict
+    pareto_trips: list[dict]
+# ------------------------------------------
+# Response Metadata Model
+#
+# Provide additional information
+# about the recommendation results.
+# ------------------------------------------
+
+class RecommendationMeta(BaseModel):
+
+    filtered_count: int = Field(ge=0)
+    pareto_count: int = Field(ge=0)
+# ------------------------------------------
+# Recommendation Response Model
+#
+# Define the standard API response
+# for successful recommendations.
+# ------------------------------------------
+
+class RecommendationResponse(BaseModel):
+
+    status: Literal["success"]
+    data: RecommendationData
+    meta: RecommendationMeta
+# ------------------------------------------
+# Generate Trip Recommendations
+#
+# Execute the recommendation engine
+# and handle application errors.
+# ------------------------------------------
+
+@app.post(
+    "/recommendations",
+    response_model=RecommendationResponse
+)
 def get_recommendations(
     preferences: TripPreferencesRequest
 ):
 
-    result = generate_recommendations(
-        trips,
-        hotels,
-        preferences.model_dump()
-    )
+    try:
 
-    return result
+        result = generate_recommendations(
+            trips,
+            hotels,
+            preferences.model_dump()
+        )
+
+    except ValueError as error:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        ) from error
+
+    except Exception:
+        logger.exception(
+            "Unexpected recommendation engine error"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error."
+        ) from None
+
+    filtered_trips = result["filtered_trips"]
+    pareto_trips = result["pareto_trips"]
+
+    return RecommendationResponse(
+        status="success",
+        data=RecommendationData(
+            recommendations=result["recommendations"],
+            pareto_trips=pareto_trips
+        ),
+        meta=RecommendationMeta(
+            filtered_count=len(filtered_trips),
+            pareto_count=len(pareto_trips)
+        )
+    )
