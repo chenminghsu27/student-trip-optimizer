@@ -1,4 +1,5 @@
 import logging
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from typing import Literal
 from datetime import datetime
@@ -28,6 +29,23 @@ app = FastAPI(
     contact={
         "name": "Student Trip Optimizer Team"
     }
+)
+# ------------------------------------------
+# CORS Configuration
+#
+# Allow the React development server
+# to communicate with FastAPI.
+# ------------------------------------------
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 logger = logging.getLogger(__name__)
 # ------------------------------------------

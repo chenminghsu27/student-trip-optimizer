@@ -17,7 +17,9 @@ function App() {
   // ------------------------------------------
 
   const [showForm, setShowForm] = useState(false);
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [results, setResults] = useState(null);
   const [preferences, setPreferences] = useState({
     max_budget: 500,
     earliest_departure: "07:00",
@@ -48,20 +50,69 @@ function App() {
   // Handle Form Submission
   // ------------------------------------------
 
-  function handleSubmit(event) {
+  // ------------------------------------------
+// Handle Form Submission
+//
+// Send travel preferences to FastAPI
+// and receive recommendations.
+// ------------------------------------------
+
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (
       preferences.max_budget === "" ||
+      !Number.isFinite(preferences.max_budget) ||
       preferences.max_budget <= 0
     ) {
-      alert("Please enter a valid budget.");
+      setError("Please enter a valid budget.");
       return;
     }
 
-    console.log("Travel Preferences:", preferences);
+    setLoading(true);
+    setError("");
+    setResults(null);
 
-    alert("Preferences saved! Check the browser console.");
+    try {
+      const response = await fetch(
+        "http://localhost:8000/recommendations",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify(preferences),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        const detail = result.detail;
+
+        throw new Error(
+          typeof detail === "string"
+            ? detail
+            : `Request failed (${response.status})`
+        );
+      }
+
+      setResults(result);
+
+      console.log("API Response:", result);
+
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred."
+      );
+
+    } finally {
+      setLoading(false);
+    }
   }
 
   // ------------------------------------------
@@ -196,8 +247,9 @@ function App() {
               <button
                 type="submit"
                 className="start-button"
+                disabled={loading}
               >
-                Find My Trip
+                {loading ? "Searching..." : "Find My Trip"}
               </button>
 
               <button
@@ -209,7 +261,41 @@ function App() {
               </button>
 
             </form>
+            {/* ------------------------------------------
+                API Response
+            ------------------------------------------ */}
 
+            {error && (
+              <div className="error-message">
+                <p>{error}</p>
+              </div>
+            )}
+
+            {results && (
+              <div className="result-container">
+
+                <h2>Recommendations Received!</h2>
+
+                <p>
+                  The recommendation engine
+                  successfully processed your request.
+                </p>
+
+                <p>
+                  Pareto-optimal trips:{" "}
+                  {results.meta?.pareto_count ?? "N/A"}
+                </p>
+
+                <details>
+                  <summary>View API Response</summary>
+
+                  <pre>
+                    {JSON.stringify(results, null, 2)}
+                  </pre>
+                </details>
+
+              </div>
+            )}
           </div>
 
         )}
