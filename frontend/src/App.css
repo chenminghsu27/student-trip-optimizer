@@ -1,0 +1,124 @@
+/* ------------------------------------------
+   Main Application Layout
+------------------------------------------ */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc;
+}
+
+
+/* ------------------------------------------
+   Navigation Bar
+------------------------------------------ */
+
+.navbar {
+  padding: 24px 8%;
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.navbar h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1e293b;
+}
+
+
+/* ------------------------------------------
+   Hero Section
+------------------------------------------ */
+
+.hero {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+}
+
+.hero-content {
+  max-width: 700px;
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: 10px 18px;
+  background-color: #dbeafe;
+  color: #2563eb;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-size: 52px;
+  color: #0f172a;
+  margin-bottom: 24px;
+  line-height: 1.2;
+}
+
+.hero p {
+  font-size: 18px;
+  color: #64748b;
+  line-height: 1.8;
+  margin-bottom: 36px;
+}
+
+
+/* ------------------------------------------
+   Get Started Button
+------------------------------------------ */
+
+.start-button {
+  padding: 16px 36px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.start-button:hover {
+  background-color: #1d4ed8;
+}
+
+
+/* ------------------------------------------
+   Footer
+------------------------------------------ */
+
+.footer {
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+
+/* ------------------------------------------
+   Responsive Design
+------------------------------------------ */
+
+@media (max-width: 768px) {
+
+  .hero h1 {
+    font-size: 36px;
+  }
+
+  .hero p {
+    font-size: 16px;
+  }
+
+  .navbar {
+    padding: 20px 24px;
+  }
+
+}
