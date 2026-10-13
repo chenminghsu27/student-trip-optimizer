@@ -18,8 +18,16 @@ from fastapi import HTTPException
 
 app = FastAPI(
     title="Student Trip Optimizer API",
-    description="Flight and hotel recommendation system",
-    version="5.0.0",
+    description=(
+        "An API that helps students compare "
+        "flight and accommodation options "
+        "based on cost, usable travel time, "
+        "and personal preferences."
+    ),
+    version="5.2.0",
+    contact={
+        "name": "Student Trip Optimizer Team"
+    }
 )
 logger = logging.getLogger(__name__)
 # ------------------------------------------
@@ -131,9 +139,27 @@ class RecommendationResponse(BaseModel):
 # and handle application errors.
 # ------------------------------------------
 
+
 @app.post(
     "/recommendations",
-    response_model=RecommendationResponse
+    response_model=RecommendationResponse,
+    summary="Generate trip recommendations",
+    description=(
+        "Compare flight and hotel combinations "
+        "using total cost, usable travel hours, "
+        "flight penalties, and Pareto optimization."
+    ),
+    responses={
+        400: {
+            "description": "Invalid travel preferences"
+        },
+        422: {
+            "description": "Request validation failed"
+        },
+        500: {
+            "description": "Internal server error"
+        }
+    }
 )
 def get_recommendations(
     preferences: TripPreferencesRequest
