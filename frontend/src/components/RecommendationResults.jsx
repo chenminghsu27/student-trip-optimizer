@@ -15,6 +15,21 @@ function RecommendationResults({ results }) {
     results?.data?.recommendations ?? {};
 
   const trips = results?.data?.pareto_trips ?? [];
+  
+    // ------------------------------------------
+    // Validate Recommendation Data
+    // ------------------------------------------
+
+  const validTrips = trips.filter((trip) => {
+    return (
+        trip &&
+        Number.isFinite(trip.total_trip_cost) &&
+        Number.isFinite(trip.usable_hours) &&
+        Number.isFinite(trip.cost_per_hour) &&
+        trip.total_trip_cost >= 0 &&
+        trip.usable_hours > 0
+    );
+    });
 
   const categories = [
     ["best_overall", "Best Overall"],
@@ -45,7 +60,7 @@ function RecommendationResults({ results }) {
   // Sort Trips
   // ------------------------------------------
 
-  const sortedTrips = [...trips].sort((a, b) => {
+  const sortedTrips = [...validTrips].sort((a, b) => {
     switch (sortBy) {
       case "price":
         return a.total_trip_cost - b.total_trip_cost;
@@ -99,12 +114,26 @@ function RecommendationResults({ results }) {
         <h2>Your Trip Recommendations</h2>
 
         <p>
-          {trips.length} Pareto-optimal travel options
+          {validTrips.length} Pareto-optimal travel options
           based on your preferences.
         </p>
       </div>
 
-      {trips.length === 0 ? (
+    {/* ------------------------------------------
+        Demo Data Notice
+    ------------------------------------------ */}
+
+    <div className="demo-notice" role="note">
+    <strong>Demo Mode</strong>
+    <p>
+        These recommendations use sample flight and
+        accommodation data. Prices and availability
+        are not live and cannot be booked.
+    </p>
+    </div>
+
+
+      {validTrips.length === 0 ? (
         <div className="empty-results" role="status">
         <h3>No matching trips found</h3>
         <p>

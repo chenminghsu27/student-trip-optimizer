@@ -60,7 +60,21 @@ function App() {
   
 async function handleSubmit(event) {
   event.preventDefault();
+  // ------------------------------------------
+  // Validate User Input
+  // ------------------------------------------
 
+  const budget = Number(preferences.max_budget);
+
+  if (
+    preferences.max_budget === "" ||
+    !Number.isFinite(budget) ||
+    budget <= 0
+  ) {
+    setError("Please enter a valid budget greater than 0.");
+    setResults(null);
+    return;
+  }
   // ------------------------------------------
   // Reset Search State
   // ------------------------------------------

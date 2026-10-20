@@ -94,17 +94,33 @@ function RecommendationCard({ trip, labels = [] }) {
         Recommendation Explanation
     ------------------------------------------ */}
 
+    
     <div className="recommendation-reason">
     <strong>Why choose this trip?</strong>
 
-    <p>
-        {labels.includes("Best Overall")
-        ? "This option offers the best overall balance based on your selected travel preferences."
-        : labels.includes("Cheapest")
-            ? "This is the lowest-cost option, but check whether the flight times reduce your usable travel hours."
-            : "This trip offers a different balance between cost and travel time."}
-    </p>
+    {labels.includes("Best Overall") ? (
+        <p>
+        This trip offers {trip.usable_hours} usable
+        travel hours at approximately A$
+        {trip.cost_per_hour.toFixed(2)} per hour,
+        making it a strong overall choice.
+        </p>
+    ) : labels.includes("Cheapest") ? (
+        <p>
+        This option costs A$
+        {trip.total_trip_cost.toFixed(2)} in total.
+        Compare its {trip.usable_hours} usable hours
+        with other options before choosing.
+        </p>
+    ) : (
+        <p>
+        This trip offers {trip.usable_hours} usable
+        hours for A${trip.total_trip_cost.toFixed(2)}.
+        </p>
+    )}
     </div>
+
+
 
     </article>
   );
