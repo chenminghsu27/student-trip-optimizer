@@ -217,3 +217,71 @@
     font-size: 26px;
   }
 }
+/* ------------------------------------------
+   API Request Status
+------------------------------------------ */
+
+.start-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------
+   Error Message
+------------------------------------------ */
+
+.error-message {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+}
+
+/* ------------------------------------------
+   API Results
+------------------------------------------ */
+
+.result-container {
+  margin-top: 24px;
+  padding: 20px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+}
+
+.result-container h2 {
+  margin-top: 0;
+  font-size: 20px;
+  color: #166534;
+}
+
+.result-container p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.result-container details {
+  margin-top: 20px;
+}
+
+.result-container summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.result-container pre {
+  margin-top: 12px;
+  padding: 16px;
+  background-color: white;
+  border-radius: 8px;
+
+  overflow-x: auto;
+  max-height: 350px;
+
+  font-size: 12px;
+  text-align: left;
+}
+.form-container:has(.recommendations-section) {
+  max-width: 1100px;
+}

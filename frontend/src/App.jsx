@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-
+import RecommendationResults from "./components/RecommendationResults";
 // ------------------------------------------
 // Student Trip Optimizer
 //
@@ -272,30 +272,9 @@ function App() {
             )}
 
             {results && (
-              <div className="result-container">
-
-                <h2>Recommendations Received!</h2>
-
-                <p>
-                  The recommendation engine
-                  successfully processed your request.
-                </p>
-
-                <p>
-                  Pareto-optimal trips:{" "}
-                  {results.meta?.pareto_count ?? "N/A"}
-                </p>
-
-                <details>
-                  <summary>View API Response</summary>
-
-                  <pre>
-                    {JSON.stringify(results, null, 2)}
-                  </pre>
-                </details>
-
-              </div>
-            )}
+              <RecommendationResults results={results} />
+              )}
+            
           </div>
 
         )}

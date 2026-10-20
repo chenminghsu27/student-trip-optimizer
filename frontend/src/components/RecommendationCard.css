@@ -1,0 +1,145 @@
+
+/* ------------------------------------------
+   Recommendation Results
+------------------------------------------ */
+
+.recommendations-section {
+  width: 100%;
+  margin-top: 36px;
+  text-align: left;
+}
+
+.results-heading {
+  margin-bottom: 24px;
+}
+
+.results-heading h2 {
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.results-heading p {
+  color: #64748b;
+}
+
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* ------------------------------------------
+   Recommendation Card
+------------------------------------------ */
+
+.recommendation-card {
+  min-width: 0;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.card-header h3 {
+  margin: 14px 0;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.card-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trip-label {
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trip-total {
+  margin: 8px 0 4px;
+  font-size: 32px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.price-caption {
+  color: #64748b;
+  font-size: 12px;
+}
+
+/* ------------------------------------------
+   Trip Details
+------------------------------------------ */
+
+.trip-details {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trip-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.trip-detail strong {
+  color: #334155;
+}
+
+.trip-detail span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* ------------------------------------------
+   Trip Metrics
+------------------------------------------ */
+
+.trip-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.trip-metrics div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trip-metrics span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.trip-metrics strong {
+  color: #0f172a;
+  font-size: 17px;
+}
+
+.empty-results {
+  padding: 20px;
+  color: #64748b;
+}
+
+/* ------------------------------------------
+   Responsive Design
+------------------------------------------ */
+
+@media (max-width: 900px) {
+  .recommendation-grid {
+    grid-template-columns: 1fr;
+  }
+}
