@@ -105,10 +105,13 @@ function RecommendationResults({ results }) {
       </div>
 
       {trips.length === 0 ? (
-        <p className="empty-results">
-          No matching trips found.
-          Try adjusting your preferences.
+        <div className="empty-results" role="status">
+        <h3>No matching trips found</h3>
+        <p>
+            Try increasing your budget, allowing overnight flights,
+            or adjusting your departure and arrival times.
         </p>
+        </div>
       ) : (
         <>
           <div className="sorting-controls">

@@ -225,4 +225,43 @@
     align-items: stretch;
   }
 }
+.trip-total {
+  color: #2563eb;
+  font-size: 36px;
+  font-weight: 700;
+  margin: 12px 0 4px;
+}
 
+.price-caption {
+  display: block;
+  margin-top: 4px;
+}
+.empty-results {
+  padding: 28px;
+  margin-top: 16px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.empty-results h3 {
+  margin: 0 0 8px;
+  color: #0f172a;
+}
+
+.empty-results p {
+  color: #64748b;
+  line-height: 1.6;
+}
+.recommendation-card .trip-total {
+  color: #2563eb;
+  font-size: 36px;
+  font-weight: 700;
+  margin: 12px 0 4px;
+}
+
+.recommendation-card .price-caption {
+  display: block;
+  margin-top: 4px;
+}

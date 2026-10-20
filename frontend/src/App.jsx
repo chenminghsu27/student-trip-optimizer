@@ -57,63 +57,59 @@ function App() {
 // and receive recommendations.
 // ------------------------------------------
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  
+async function handleSubmit(event) {
+  event.preventDefault();
 
-    if (
-      preferences.max_budget === "" ||
-      !Number.isFinite(preferences.max_budget) ||
-      preferences.max_budget <= 0
-    ) {
-      setError("Please enter a valid budget.");
-      return;
-    }
+  // ------------------------------------------
+  // Reset Search State
+  // ------------------------------------------
 
-    setLoading(true);
-    setError("");
-    setResults(null);
+  setLoading(true);
+  setError("");
+  setResults(null);
 
-    try {
-      const response = await fetch(
-        "http://localhost:8000/recommendations",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify(preferences),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        const detail = result.detail;
-
-        throw new Error(
-          typeof detail === "string"
-            ? detail
-            : `Request failed (${response.status})`
-        );
+  try {
+    // Keep the same API URL and request payload
+    // that worked in V6.2.
+    const response = await fetch(
+      "http://127.0.0.1:8000/recommendations",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+        ...preferences,
+        max_budget: Number(preferences.max_budget),
+      }),
       }
+    );
 
-      setResults(result);
-
-      console.log("API Response:", result);
-
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "An unexpected error occurred."
+    if (!response.ok) {
+      throw new Error(
+        `Unable to get recommendations (${response.status}).`
       );
-
-    } finally {
-      setLoading(false);
     }
+
+    const data = await response.json();
+
+    if (data.status !== "success") {
+      throw new Error("Unexpected API response.");
+    }
+
+    setResults(data);
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Something went wrong. Please try again."
+    );
+  } finally {
+    setLoading(false);
   }
+}
+
 
   // ------------------------------------------
   // Render Application
@@ -246,10 +242,10 @@ function App() {
 
               <button
                 type="submit"
-                className="start-button"
                 disabled={loading}
+                aria-busy={loading}
               >
-                {loading ? "Searching..." : "Find My Trip"}
+                {loading ? "Finding Trips..." : "Find My Trip"}
               </button>
 
               <button
@@ -260,23 +256,35 @@ function App() {
                 Back
               </button>
 
-            </form>
+            </form>     
             {/* ------------------------------------------
-                API Response
+                Search Feedback
             ------------------------------------------ */}
 
-            {error && (
-              <div className="error-message">
-                <p>{error}</p>
+            {loading && (
+              <div className="search-feedback" role="status">
+                <span className="loading-spinner" aria-hidden="true" />
+                <div>
+                  <strong>Finding your best trips...</strong>
+                  <p>
+                    Comparing prices, flight times and travel value.
+                  </p>
+                </div>
               </div>
             )}
 
-            {results && (
-              <RecommendationResults results={results} />
-              )}
-            
-          </div>
+            {error && (
+              <div className="search-feedback error-feedback" role="alert">
+                <strong>Something went wrong</strong>
+                <p>{error}</p>
+                <p>Please try again or check your connection.</p>
+              </div>
+            )}
 
+            {!loading && !error && results && (
+              <RecommendationResults results={results} />
+            )}
+          </div>
         )}
 
       </main>
