@@ -89,6 +89,23 @@ function RecommendationCard({ trip, labels = [] }) {
           <strong>{formatPrice(trip.hotel_cost)}</strong>
         </div>
       </div>
+
+    {/* ------------------------------------------
+        Recommendation Explanation
+    ------------------------------------------ */}
+
+    <div className="recommendation-reason">
+    <strong>Why choose this trip?</strong>
+
+    <p>
+        {labels.includes("Best Overall")
+        ? "This option offers the best overall balance based on your selected travel preferences."
+        : labels.includes("Cheapest")
+            ? "This is the lowest-cost option, but check whether the flight times reduce your usable travel hours."
+            : "This trip offers a different balance between cost and travel time."}
+    </p>
+    </div>
+
     </article>
   );
 }
