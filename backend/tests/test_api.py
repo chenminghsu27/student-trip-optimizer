@@ -14,6 +14,22 @@ from api import app
 
 client = TestClient(app)
 
+# ------------------------------------------
+# Valid Demo Request Payload
+# ------------------------------------------
+
+VALID_PAYLOAD = {
+    "origin": "MEL",
+    "destination": "SYD",
+    "departure_date": "2026-11-10",
+    "return_date": "2026-11-13",
+    "max_budget": 1000,
+    "earliest_departure": "07:00",
+    "latest_arrival": "23:59",
+    "allow_overnight_flights": True,
+    "travel_style": "balanced",
+}
+
 
 # ------------------------------------------
 # Test Health Check Endpoint
@@ -41,15 +57,7 @@ def test_health_check():
 # ------------------------------------------
 
 def test_valid_recommendation_request():
-
-    payload = {
-        "max_budget": 1000,
-        "earliest_departure": "07:00",
-        "latest_arrival": "23:59",
-        "allow_overnight_flights": True,
-        "travel_style": "balanced"
-    }
-
+    payload = VALID_PAYLOAD.copy()
     response = client.post(
         "/recommendations",
         json=payload
@@ -80,12 +88,9 @@ def test_valid_recommendation_request():
 def test_invalid_budget():
 
     payload = {
-        "max_budget": -100,
-        "earliest_departure": "07:00",
-        "latest_arrival": "23:59",
-        "allow_overnight_flights": True,
-        "travel_style": "balanced"
-    }
+    **VALID_PAYLOAD,
+    "max_budget": -100,
+}
 
     response = client.post(
         "/recommendations",
@@ -105,12 +110,9 @@ def test_invalid_budget():
 def test_invalid_travel_style():
 
     payload = {
-        "max_budget": 1000,
-        "earliest_departure": "07:00",
-        "latest_arrival": "23:59",
-        "allow_overnight_flights": True,
-        "travel_style": "luxury"
-    }
+    **VALID_PAYLOAD,
+    "travel_style": "luxury",
+}
 
     response = client.post(
         "/recommendations",
@@ -144,13 +146,7 @@ def test_recommendation_validation_error(
         mock_generate_recommendations
     )
 
-    payload = {
-        "max_budget": 1000,
-        "earliest_departure": "07:00",
-        "latest_arrival": "23:59",
-        "allow_overnight_flights": True,
-        "travel_style": "balanced"
-    }
+    payload = VALID_PAYLOAD.copy()
 
     response = client.post(
         "/recommendations",
@@ -188,13 +184,7 @@ def test_unexpected_server_error(
         mock_generate_recommendations
     )
 
-    payload = {
-        "max_budget": 1000,
-        "earliest_departure": "07:00",
-        "latest_arrival": "23:59",
-        "allow_overnight_flights": True,
-        "travel_style": "balanced"
-    }
+    payload = VALID_PAYLOAD.copy()
 
     response = client.post(
         "/recommendations",

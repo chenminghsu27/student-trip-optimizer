@@ -1,6 +1,8 @@
 from data import trips, hotels, TRAVEL_STYLES
 from datetime import datetime
 from recommendation_engine import generate_recommendations
+from fastapi import FastAPI
+app = FastAPI()
 # ------------------------------------------
 # Get user travel preferences
 #

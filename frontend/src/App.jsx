@@ -3,9 +3,6 @@ import "./App.css";
 import RecommendationResults from "./components/RecommendationResults";
 // ------------------------------------------
 // Student Trip Optimizer
-//
-// V6.1 - Travel Preferences Form
-//
 // Allow users to enter their travel
 // preferences before searching for trips.
 // ------------------------------------------
@@ -21,12 +18,18 @@ function App() {
   const [error, setError] = useState("");
   const [results, setResults] = useState(null);
   const [preferences, setPreferences] = useState({
-    max_budget: 500,
-    earliest_departure: "07:00",
-    latest_arrival: "23:00",
-    allow_overnight_flights: false,
-    travel_style: "balanced",
-  });
+  origin: "MEL",
+  destination: "SYD",
+  departure_date: "2026-11-10",
+  return_date: "2026-11-13",
+
+  max_budget: 500,
+  earliest_departure: "07:00",
+  latest_arrival: "23:00",
+  allow_overnight_flights: false,
+  travel_style: "balanced",
+});
+
 
   // ------------------------------------------
   // Handle Input Changes
@@ -75,6 +78,40 @@ async function handleSubmit(event) {
     setResults(null);
     return;
   }
+
+  if (preferences.origin === preferences.destination) {
+  setError("Origin and destination must be different.");
+  setResults(null);
+  return;
+  }
+
+  if (
+  !preferences.departure_date ||
+  !preferences.return_date ||
+  preferences.return_date <= preferences.departure_date
+  ) {
+  setError("Return date must be after departure date.");
+  setResults(null);
+  return;
+}
+
+
+const isDemoSearch =
+  preferences.origin === "MEL" &&
+  preferences.destination === "SYD" &&
+  preferences.departure_date === "2026-11-10" &&
+  preferences.return_date === "2026-11-13"
+
+if (!isDemoSearch) {
+  setError(
+    "Demo Mode currently supports only MEL → SYD, " +
+    "10–13 November 2026. Live flight search is coming later."
+  );
+  setResults(null);
+  return;
+}
+
+
   // ------------------------------------------
   // Reset Search State
   // ------------------------------------------
@@ -93,10 +130,14 @@ async function handleSubmit(event) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+        
+    
+      body: JSON.stringify({
         ...preferences,
         max_budget: Number(preferences.max_budget),
       }),
+
+
       }
     );
 
@@ -174,8 +215,64 @@ async function handleSubmit(event) {
             </p>
 
             <form onSubmit={handleSubmit}>
+            
+            {/* V6.7 — Travel Search */}
 
-              <div className="form-group">
+            <div className="form-group">
+              <label htmlFor="origin">Origin Airport</label>
+              <select
+                id="origin"
+                name="origin"
+                value={preferences.origin}
+                onChange={handleChange}
+                required
+              >
+                <option value="MEL">Melbourne (MEL)</option>
+                <option value="SYD">Sydney (SYD)</option>
+                <option value="BNE">Brisbane (BNE)</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="destination">Destination Airport</label>
+              <select
+                id="destination"
+                name="destination"
+                value={preferences.destination}
+                onChange={handleChange}
+                required
+              >
+                <option value="MEL">Melbourne (MEL)</option>
+                <option value="SYD">Sydney (SYD)</option>
+                <option value="BNE">Brisbane (BNE)</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="departure_date">Departure Date</label>
+              <input
+                id="departure_date"
+                type="date"
+                name="departure_date"
+                value={preferences.departure_date}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="return_date">Return Date</label>
+              <input
+                id="return_date"
+                type="date"
+                name="return_date"
+                min={preferences.departure_date}
+                value={preferences.return_date}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
                 <label htmlFor="max_budget">
                   Maximum Budget (AUD)
                 </label>
@@ -309,6 +406,7 @@ async function handleSubmit(event) {
 
     </div>
   );
+  
 }
 
 export default App;

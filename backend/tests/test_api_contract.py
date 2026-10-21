@@ -26,11 +26,15 @@ client = TestClient(app)
 def valid_preferences():
 
     return {
+         "origin": "MEL",
+        "destination": "SYD",
+        "departure_date": "2026-11-10",
+        "return_date": "2026-11-13",
         "max_budget": 1000,
         "earliest_departure": "07:00",
         "latest_arrival": "23:59",
         "allow_overnight_flights": True,
-        "travel_style": "balanced"
+        "travel_style": "balanced",
     }
 # ------------------------------------------
 # Test API Response Structure
