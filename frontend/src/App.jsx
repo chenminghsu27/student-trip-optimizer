@@ -1,6 +1,9 @@
 import { useState } from "react";
 import "./App.css";
 import RecommendationResults from "./components/RecommendationResults";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://127.0.0.1:8000";
 // ------------------------------------------
 // Student Trip Optimizer
 // Allow users to enter their travel
@@ -123,23 +126,21 @@ if (!isDemoSearch) {
   try {
     // Keep the same API URL and request payload
     // that worked in V6.2.
+     
     const response = await fetch(
-      "http://127.0.0.1:8000/recommendations",
+      `${API_BASE_URL}/recommendations`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        
-    
-      body: JSON.stringify({
-        ...preferences,
-        max_budget: Number(preferences.max_budget),
-      }),
-
-
+        body: JSON.stringify({
+          ...preferences,
+          max_budget: Number(preferences.max_budget),
+        }),
       }
     );
+
 
     if (!response.ok) {
       throw new Error(
