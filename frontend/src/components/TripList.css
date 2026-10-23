@@ -1,0 +1,144 @@
+.trip-list-section {
+  margin: 28px 0;
+}
+
+.trip-list-heading {
+  margin-bottom: 16px;
+}
+
+.trip-list-heading h3 {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+}
+
+.trip-list-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.trip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trip-list-item {
+  padding: 18px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.trip-list-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.trip-list-info {
+  min-width: 0;
+}
+
+.trip-list-info h4 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.trip-list-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.trip-list-label {
+  padding: 4px 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.trip-list-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.trip-list-price strong {
+  color: #0f172a;
+  font-size: 1.4rem;
+}
+
+.trip-list-price span {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.trip-list-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.trip-list-metrics > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.trip-list-metrics span {
+  font-size: 1rem;
+  color: #64748b;
+}
+
+.trip-list-metrics strong {
+  font-size: 1.17rem;
+  color: #0f172a;
+}
+
+@media (max-width: 600px) {
+  .trip-list-item {
+    padding: 14px;
+  }
+
+  .trip-list-price strong {
+    font-size: 1.15rem;
+  }
+
+  .trip-list-main {
+    gap: 10px;
+  }
+}
+
+.trip-details-toggle {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #1d4ed8;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.trip-details-toggle:hover {
+  background: #eff6ff;
+}
+
+.trip-details-toggle:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}

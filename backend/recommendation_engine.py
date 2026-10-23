@@ -1,5 +1,5 @@
 from models import FlightItinerary, Hotel, Trip
-
+from datetime import datetime
 from calculations import (
     calculate_total_price,
     calculate_total_penalty,
@@ -20,7 +20,6 @@ from validation import (
     validate_hotel,
     validate_preferences,
 )
-
 from data import TRAVEL_STYLES
 # ------------------------------------------
 # Generate Trip Combinations
@@ -28,7 +27,59 @@ from data import TRAVEL_STYLES
 # Combine every flight option
 # with every available hotel.
 # ------------------------------------------
+# ------------------------------------------
+# Validate Flight Pair
+#
+# Ensure outbound arrival occurs before
+# return departure.
+# ------------------------------------------
 
+def is_valid_flight_pair(
+    outbound: dict,
+    return_flight: dict
+) -> bool:
+
+    outbound_arrival = datetime.strptime(
+        outbound["arrival"],
+        "%Y-%m-%d %H:%M"
+    )
+
+    return_departure = datetime.strptime(
+        return_flight["departure"],
+        "%Y-%m-%d %H:%M"
+    )
+
+    return outbound_arrival < return_departure
+def generate_flight_itineraries(
+    outbound_flights: list[dict],
+    return_flights: list[dict]
+) -> list[FlightItinerary]:
+
+    itineraries: list[FlightItinerary] = []
+
+    for outbound_index, outbound in enumerate(
+        outbound_flights, start=1
+    ):
+        for return_index, return_flight in enumerate(
+            return_flights, start=1
+        ):
+
+            # Skip invalid flight combinations
+            if not is_valid_flight_pair(
+                outbound,
+                return_flight
+            ):
+                continue
+
+            itinerary: FlightItinerary = {
+                "name": f"Trip {outbound_index}-{return_index}",
+                "outbound": outbound,
+                "return": return_flight
+            }
+
+            itineraries.append(itinerary)
+
+    return itineraries
 def generate_combinations(
     trips: list[FlightItinerary],
     hotels: list[Hotel]

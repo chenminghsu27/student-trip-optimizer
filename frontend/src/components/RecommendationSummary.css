@@ -1,0 +1,81 @@
+.recommendation-summary {
+  margin: 28px 0;
+}
+
+.summary-heading {
+  margin-bottom: 18px;
+}
+
+.summary-heading h3 {
+  font-size: 1.35rem;
+  margin: 0 0 6px;
+}
+
+.summary-heading p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.summary-card:first-child {
+  border-top: 4px solid #16a34a;
+}
+
+.summary-card:nth-child(2) {
+  border-top: 4px solid #2563eb;
+}
+
+.summary-card:nth-child(3) {
+  border-top: 4px solid #f59e0b;
+}
+
+.summary-type {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.summary-value {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.summary-description {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.summary-trip-name {
+  margin-top: auto;
+  font-size: 0.8rem;
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    padding: 16px;
+  }
+}

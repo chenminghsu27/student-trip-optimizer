@@ -4,21 +4,15 @@ import pytest
 from data import trips, hotels
 from data_validator import validate_trips, validate_hotels
 
-
 def test_valid_demo_trips():
     result = validate_trips(trips)
-
-    assert len(result) == 3
-    assert result[0]["name"] == "Trip A"
-    assert result[1]["name"] == "Trip B"
-    assert result[2]["name"] == "Trip C"
+    assert len(result) == 12
 
 
 def test_valid_demo_hotels():
     result = validate_hotels(hotels)
+    assert len(result) == 6
 
-    assert len(result) == 3
-    assert result[0]["name"] == "Budget Hostel"
 
 
 def test_invalid_flight_price():

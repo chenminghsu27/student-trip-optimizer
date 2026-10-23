@@ -1,0 +1,182 @@
+.expanded-trip-details {
+  margin-top: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0 20px;
+  background: #fff;
+}
+
+/* Equal-height travel sections */
+
+.trip-detail-block {
+  min-height: 110px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: 15px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.trip-detail-block h5,
+.trip-cost-block h5 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #0f172a;
+}
+
+/* Flight timeline */
+
+.flight-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.flight-time {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.flight-time strong {
+  font-size: 1.5rem;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.flight-time span,
+.flight-duration span,
+.hotel-info span,
+.hotel-price span {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.flight-arrival {
+  text-align: right;
+}
+
+.flight-duration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+}
+
+.flight-duration span:first-child {
+  font-size: 1.4rem;
+}
+
+/* Accommodation */
+
+.hotel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.hotel-info,
+.hotel-price {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hotel-price {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.hotel-price strong {
+  font-size: 1.25rem;
+  color: #0f172a;
+}
+
+/* Cost breakdown */
+
+.trip-cost-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 0;
+}
+
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.9rem;
+}
+
+.cost-row span {
+  color: #64748b;
+}
+
+.cost-row strong {
+  color: #0f172a;
+}
+
+.cost-total {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 18px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.cost-total span {
+  font-weight: 1.5rem;
+  color: #0f172a;
+}
+
+.cost-total strong {
+  font-size: 1.5rem;
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+  .expanded-trip-details {
+    padding: 0 14px;
+  }
+
+  .trip-detail-block {
+    min-height: 130px;
+  }
+
+  .flight-timeline {
+    gap: 8px;
+  }
+
+  .flight-time strong {
+    font-size: 1.35rem;
+  }
+
+  .flight-time span,
+  .flight-duration span {
+    font-size: 0.72rem;
+  }
+}
+.trip-detail-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trip-detail-heading svg,
+.hotel-heading svg {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.hotel-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}

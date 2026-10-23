@@ -1,6 +1,7 @@
-
+import { mapRecommendationResults } from "../utils/tripMapper";
 import { useState } from "react";
-import RecommendationCard from "./RecommendationCard";
+import RecommendationSummary from "./RecommendationSummary";
+import TripList from "./TripList";
 
 // ------------------------------------------
 // Recommendation Results
@@ -11,49 +12,14 @@ import RecommendationCard from "./RecommendationCard";
 function RecommendationResults({ results }) {
   const [sortBy, setSortBy] = useState("recommended");
 
-  const recommendations =
-    results?.data?.recommendations ?? {};
+  const { trips: mappedTrips, recommendations } =
+    mapRecommendationResults(results);
 
-  const trips = results?.data?.pareto_trips ?? [];
-  
-    // ------------------------------------------
-    // Validate Recommendation Data
-    // ------------------------------------------
-
-  const validTrips = trips.filter((trip) => {
-    return (
-        trip &&
-        Number.isFinite(trip.total_trip_cost) &&
-        Number.isFinite(trip.usable_hours) &&
-        Number.isFinite(trip.cost_per_hour) &&
-        trip.total_trip_cost >= 0 &&
-        trip.usable_hours > 0
-    );
-    });
-
-  const categories = [
-    ["best_overall", "Best Overall"],
-    ["cheapest", "Cheapest"],
-    ["best_value", "Best Value"],
-    ["best_time_adjusted", "Best Time Adjusted"],
-  ];
-
-  // ------------------------------------------
-  // Identify Recommendation Labels
-  // ------------------------------------------
+  const validTrips = mappedTrips.map((trip) => trip.raw);
 
   function getLabels(trip) {
-    return categories
-      .filter(([key]) => {
-        const recommended = recommendations[key];
-
-        return (
-          recommended &&
-          recommended.name === trip.name &&
-          recommended.total_trip_cost === trip.total_trip_cost
-        );
-      })
-      .map(([, label]) => label);
+    const mappedTrip = mappedTrips.find((item) => item.raw === trip);
+    return mappedTrip?.ranking.labels ?? [];
   }
 
   // ------------------------------------------
@@ -72,9 +38,7 @@ function RecommendationResults({ results }) {
         return a.cost_per_hour - b.cost_per_hour;
 
       default:
-        return (
-          a.weighted_score - b.weighted_score
-        );
+        return a.weighted_score - b.weighted_score;
     }
   });
 
@@ -88,20 +52,15 @@ function RecommendationResults({ results }) {
   const differentTrips =
     cheapest &&
     bestOverall &&
-    (
-      cheapest.name !== bestOverall.name ||
-      cheapest.total_trip_cost !==
-        bestOverall.total_trip_cost
-    );
+    (cheapest.name !== bestOverall.name ||
+      cheapest.total_trip_cost !== bestOverall.total_trip_cost);
 
   const extraCost = differentTrips
-    ? bestOverall.total_trip_cost -
-      cheapest.total_trip_cost
+    ? bestOverall.total_trip_cost - cheapest.total_trip_cost
     : 0;
 
   const extraHours = differentTrips
-    ? bestOverall.usable_hours -
-      cheapest.usable_hours
+    ? bestOverall.usable_hours - cheapest.usable_hours
     : 0;
 
   // ------------------------------------------
@@ -113,93 +72,38 @@ function RecommendationResults({ results }) {
       <div className="results-heading">
         <h2>Your Trip Recommendations</h2>
 
-        <p>
-          {validTrips.length} Pareto-optimal travel options
-          based on your preferences.
-        </p>
+        <p>{validTrips.length} travel options based on your preferences.</p>
       </div>
-
-    {/* ------------------------------------------
-        Demo Data Notice
-    ------------------------------------------ */}
-
-    <div className="demo-notice" role="note">
-    <strong>Demo Mode</strong>
-    <p>
-        These recommendations use sample flight and
-        accommodation data. Prices and availability
-        are not live and cannot be booked.
-    </p>
-    </div>
-
-
       {validTrips.length === 0 ? (
         <div className="empty-results" role="status">
-        <h3>No matching trips found</h3>
-        <p>
-            Try increasing your budget, allowing overnight flights,
-            or adjusting your departure and arrival times.
-        </p>
+          <h3>No matching trips found</h3>
+          <p>
+            Try increasing your budget, allowing overnight flights, or adjusting
+            your departure and arrival times.
+          </p>
         </div>
       ) : (
         <>
+          <RecommendationSummary trips={mappedTrips} />
           <div className="sorting-controls">
             <label htmlFor="sortBy">Sort By</label>
 
             <select
               id="sortBy"
               value={sortBy}
-              onChange={(event) =>
-                setSortBy(event.target.value)
-              }
+              onChange={(event) => setSortBy(event.target.value)}
             >
-              <option value="recommended">
-                Recommended
-              </option>
-              <option value="price">
-                Lowest Price
-              </option>
-              <option value="hours">
-                Most Travel Hours
-              </option>
-              <option value="value">
-                Best Cost per Hour
-              </option>
+              <option value="recommended">Recommended</option>
+              <option value="price">Lowest Price</option>
+              <option value="hours">Most Travel Hours</option>
+              <option value="value">Best Cost per Hour</option>
             </select>
           </div>
-
-          {differentTrips && (
-            <div className="comparison-summary">
-              <h3>Is the cheapest trip worth it?</h3>
-
-              <p>
-                The best overall trip costs{" "}
-                <strong>
-                  A${Math.abs(extraCost).toFixed(2)}
-                  {extraCost >= 0 ? " more" : " less"}
-                </strong>
-                {" "}and provides{" "}
-                <strong>
-                  {Math.abs(extraHours)}{" "}
-                  {extraHours >= 0
-                    ? "more"
-                    : "fewer"}{" "}
-                  usable travel hours
-                </strong>
-                {" "}than the cheapest option.
-              </p>
-            </div>
-          )}
-
-          <div className="recommendation-grid">
-            {sortedTrips.map((trip, index) => (
-              <RecommendationCard
-                key={`${trip.name}-${trip.total_trip_cost}-${index}`}
-                trip={trip}
-                labels={getLabels(trip)}
-              />
-            ))}
-          </div>
+          <TripList
+            trips={sortedTrips
+              .map((trip) => mappedTrips.find((item) => item.raw === trip))
+              .filter(Boolean)}
+          />
         </>
       )}
     </section>
