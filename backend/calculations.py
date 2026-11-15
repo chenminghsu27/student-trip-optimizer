@@ -140,7 +140,10 @@ def calculate_usable_hours(trip):
 #   until their return departure date.
 # ------------------------------------------
 
+
+
 def calculate_hotel_nights(trip):
+    """Estimate hotel nights using flight dates and hotel check-in time."""
 
     arrival = parse_datetime(
         trip["outbound"]["arrival"]
@@ -150,32 +153,28 @@ def calculate_hotel_nights(trip):
         trip["return"]["departure"]
     )
 
-    check_in_time = parse_datetime(
-        "2026-01-01 " + trip["hotel"]["check_in"]
+    check_in_time = datetime.strptime(
+        trip["hotel"]["check_in"],
+        "%H:%M"
     ).time()
 
-    check_out_time = parse_datetime(
-        "2026-01-01 " + trip["hotel"]["check_out"]
+    check_out_time = datetime.strptime(
+        trip["hotel"]["check_out"],
+        "%H:%M"
     ).time()
 
-    # Calculate standard hotel nights
     nights = (
         departure.date() - arrival.date()
     ).days
 
-    # Early morning arrival
-    # Assume the traveller wants immediate access
-    # to a hotel room.
+    # Early morning arrivals may need a room immediately.
     if arrival.time() < check_in_time:
         if arrival.hour < 6:
             nights += 1
 
-    # Early morning return departure
-    # Does not automatically require another night.
-    # The last booked night already covers
-    # the early departure morning.
-
     return max(0, nights)
+
+
 # ------------------------------------------
 # Calculate hotel cost
 #
@@ -185,13 +184,19 @@ def calculate_hotel_nights(trip):
 # to estimate required accommodation.
 # ------------------------------------------
 
+
 def calculate_hotel_cost(trip):
+    """Use quoted hotel total when available."""
+
+    hotel = trip["hotel"]
+
+    if "total_price" in hotel:
+        return hotel["total_price"]
 
     nights = calculate_hotel_nights(trip)
 
-    price_per_night = trip["hotel"]["price_per_night"]
+    return nights * hotel["price_per_night"]
 
-    return nights * price_per_night
 # ------------------------------------------
 # Calculate total trip cost
 #

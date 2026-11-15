@@ -5,9 +5,11 @@ from typing import Literal
 from datetime import datetime, date
 from pydantic import BaseModel, Field, field_validator, model_validator
 from data import trips, hotels
-from recommendation_engine import generate_recommendations
+from recommendation_engine import generate_recommendations,generate_flight_itineraries
 from data_validator import validate_trips, validate_hotels
 from fastapi import HTTPException
+from serpapi_client import search_one_way_flights
+from serpapi_hotels_client import search_hotels
 # ------------------------------------------
 # Initialize FastAPI Application
 #
@@ -85,7 +87,8 @@ def health_check():
 
 
 class TripPreferencesRequest(BaseModel):
-
+    search_mode: Literal["demo", "live"] = "demo"
+    adults: int = Field(default=1, ge=1, le=8)
     # V6.8 — Travel Search
     origin: Literal["MEL", "SYD", "BNE"]
     destination: Literal["MEL", "SYD", "BNE"]
@@ -179,6 +182,97 @@ class RecommendationResponse(BaseModel):
 # ------------------------------------------
 
 
+
+
+def get_live_trip_data(
+    preferences: TripPreferencesRequest,
+) -> tuple[list[dict], list[dict]]:
+    """Fetch and prepare real flights and hotels."""
+
+    if preferences.adults != 1:
+        raise ValueError(
+            "Live Mode currently supports one traveller only."
+        )
+
+    if preferences.departure_date < date.today():
+        raise ValueError(
+            "Departure date cannot be in the past."
+        )
+
+    origin = preferences.origin
+    destination = preferences.destination
+
+    departure_date = preferences.departure_date.isoformat()
+    return_date = preferences.return_date.isoformat()
+
+    # 1. Search outbound flights
+    outbound_flights = search_one_way_flights(
+        origin,
+        destination,
+        departure_date,
+    )
+
+    # 2. Search return flights
+    return_flights = search_one_way_flights(
+        destination,
+        origin,
+        return_date,
+    )
+
+    # 3. Search hotels for the same dates
+    live_hotels = search_hotels(
+        destination=destination,
+        check_in_date=departure_date,
+        check_out_date=return_date,
+        adults=preferences.adults,
+        max_results=20,
+    )
+
+    # 4. Validate returned data
+    if not outbound_flights or not return_flights:
+        raise ValueError(
+            "No flights found for the selected dates."
+        )
+
+    if not live_hotels:
+        raise ValueError(
+            "No hotels found for the selected dates."
+        )
+
+    # 5. Limit candidate volume for MVP
+    # This is a price-first shortlist, not a global optimum.
+    outbound_flights = sorted(
+        outbound_flights,
+        key=lambda flight: flight["price"],
+    )[:15]
+
+    return_flights = sorted(
+        return_flights,
+        key=lambda flight: flight["price"],
+    )[:15]
+
+    live_hotels = sorted(
+        live_hotels,
+        key=lambda hotel: hotel["total_price"],
+    )[:10]
+
+    # 6. Generate round-trip flight itineraries
+    itineraries = generate_flight_itineraries(
+        outbound_flights,
+        return_flights,
+    )
+
+    if not itineraries:
+        raise ValueError(
+            "No valid round-trip flight combinations found."
+        )
+
+    # 7. Validate the final internal data
+    validated_trips = validate_trips(itineraries)
+    validated_hotels = validate_hotels(live_hotels)
+
+    return validated_trips, validated_hotels
+
 @app.post(
     "/recommendations",
     response_model=RecommendationResponse,
@@ -201,10 +295,10 @@ class RecommendationResponse(BaseModel):
     }
 )
 def get_recommendations(
-    preferences: TripPreferencesRequest
+    preferences: TripPreferencesRequest,
 ):
-    
-    # V6.8 — Demo Search Restriction
+    """Generate recommendations using demo or live data."""
+
     demo_origin = "MEL"
     demo_destination = "SYD"
     demo_departure = date(2026, 11, 10)
@@ -217,19 +311,20 @@ def get_recommendations(
         and preferences.return_date == demo_return
     )
 
-    if not is_demo_search:
+    if preferences.search_mode == "demo" and not is_demo_search:
         raise HTTPException(
             status_code=400,
             detail=(
                 "Demo Mode currently supports only "
                 "MEL to SYD, 10–13 November 2026."
-            )
+            ),
         )
 
     try:
-
         engine_preferences = preferences.model_dump(
             exclude={
+                "search_mode",
+                "adults",
                 "origin",
                 "destination",
                 "departure_date",
@@ -238,21 +333,37 @@ def get_recommendations(
         )
 
         
-        validated_trips = validate_trips(trips)
-        validated_hotels = validate_hotels(hotels)
+        if preferences.search_mode == "live":
+            try:
+                validated_trips, validated_hotels = (
+                    get_live_trip_data(preferences)
+                )
+            except RuntimeError as error:
+                logger.exception("External travel search failed")
+
+                raise HTTPException(
+                    status_code=502,
+                    detail="Live travel search is temporarily unavailable.",
+                ) from error
+        else:
+            validated_trips = validate_trips(trips)
+            validated_hotels = validate_hotels(hotels)
+
 
         result = generate_recommendations(
             validated_trips,
             validated_hotels,
-            engine_preferences
+            engine_preferences,
         )
-
+    except HTTPException:
+        raise
     except ValueError as error:
-
         raise HTTPException(
             status_code=400,
-            detail=str(error)
+            detail=str(error),
         ) from error
+
+    
 
     except Exception:
         logger.exception(
@@ -261,7 +372,7 @@ def get_recommendations(
 
         raise HTTPException(
             status_code=500,
-            detail="Internal server error."
+            detail="Internal server error.",
         ) from None
 
     filtered_trips = result["filtered_trips"]
@@ -271,10 +382,10 @@ def get_recommendations(
         status="success",
         data=RecommendationData(
             recommendations=result["recommendations"],
-            pareto_trips=pareto_trips
+            pareto_trips=pareto_trips,
         ),
         meta=RecommendationMeta(
             filtered_count=len(filtered_trips),
-            pareto_count=len(pareto_trips)
-        )
+            pareto_count=len(pareto_trips),
+        ),
     )

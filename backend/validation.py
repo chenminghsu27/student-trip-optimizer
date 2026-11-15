@@ -96,7 +96,9 @@ def validate_flight(flight: dict) -> None:
 # nightly price, and check-in/out times.
 # ------------------------------------------
 
+
 def validate_hotel(hotel: dict) -> None:
+    """Validate demo and live hotel data."""
 
     if not isinstance(hotel, dict):
         raise ValueError("Hotel must be a dictionary.")
@@ -107,28 +109,70 @@ def validate_hotel(hotel: dict) -> None:
             "name",
             "price_per_night",
             "check_in",
-            "check_out"
-        ]
+            "check_out",
+        ],
     )
+
+    if not isinstance(hotel["name"], str) or not hotel["name"].strip():
+        raise ValueError("Hotel name must be a non-empty string.")
 
     validate_price(hotel["price_per_night"])
 
     for field in ("check_in", "check_out"):
-
         value = hotel[field]
 
         if not isinstance(value, str):
-            raise ValueError(
-                f"Invalid hotel {field}: {value}"
-            )
+            raise ValueError(f"Invalid hotel {field}: {value}")
 
         try:
             datetime.strptime(value, "%H:%M")
-
         except ValueError:
             raise ValueError(
                 f"Invalid hotel {field}: {value}"
             ) from None
+
+    # Live hotel pricing
+    if "total_price" in hotel:
+        validate_price(hotel["total_price"])
+
+        # A live quote must identify its booking conditions.
+        validate_required_fields(
+            hotel,
+            [
+                "check_in_date",
+                "check_out_date",
+                "adults",
+                "currency",
+            ],
+        )
+
+        try:
+            check_in_date = datetime.strptime(
+                hotel["check_in_date"], "%Y-%m-%d"
+            ).date()
+
+            check_out_date = datetime.strptime(
+                hotel["check_out_date"], "%Y-%m-%d"
+            ).date()
+
+        except (TypeError, ValueError):
+            raise ValueError("Invalid hotel booking dates.") from None
+
+        if check_out_date <= check_in_date:
+            raise ValueError(
+                "Hotel check-out must be after check-in."
+            )
+
+        if (
+            isinstance(hotel["adults"], bool)
+            or not isinstance(hotel["adults"], int)
+            or hotel["adults"] < 1
+        ):
+            raise ValueError("Hotel adults must be a positive integer.")
+
+        if hotel["currency"] != "AUD":
+            raise ValueError("Only AUD hotel quotes are supported.")
+
 # ------------------------------------------
 # Validate User Preferences
 #

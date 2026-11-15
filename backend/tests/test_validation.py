@@ -143,3 +143,58 @@ def test_valid_hotel():
     }
 
     validate_hotel(hotel)
+def make_live_hotel():
+    return {
+        "name": "Capella Sydney",
+        "price_per_night": 892.0,
+        "total_price": 2675.0,
+        "check_in": "15:00",
+        "check_out": "11:00",
+        "check_in_date": "2026-12-12",
+        "check_out_date": "2026-12-15",
+        "adults": 2,
+        "currency": "AUD",
+    }
+
+
+def test_valid_live_hotel():
+    validate_hotel(make_live_hotel())
+
+
+@pytest.mark.parametrize(
+    "price",
+    [-100, "invalid", None, float("nan"), float("inf")],
+)
+def test_reject_invalid_total_price(price):
+    hotel = make_live_hotel()
+    hotel["total_price"] = price
+
+    with pytest.raises(ValueError):
+        validate_hotel(hotel)
+
+
+def test_reject_invalid_hotel_dates():
+    hotel = make_live_hotel()
+    hotel["check_out_date"] = "2026-12-11"
+
+    with pytest.raises(ValueError):
+        validate_hotel(hotel)
+
+
+def test_reject_invalid_currency():
+    hotel = make_live_hotel()
+    hotel["currency"] = "USD"
+
+    with pytest.raises(ValueError):
+        validate_hotel(hotel)
+
+
+def test_demo_hotel_still_supported():
+    hotel = {
+        "name": "Budget Hostel",
+        "price_per_night": 45.0,
+        "check_in": "15:00",
+        "check_out": "10:00",
+    }
+
+    validate_hotel(hotel)

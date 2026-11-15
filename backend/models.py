@@ -1,5 +1,4 @@
-from typing import TypedDict
-
+from typing import TypedDict, NotRequired
 
 # ------------------------------------------
 # Flight Data Model
@@ -22,12 +21,30 @@ class Flight(TypedDict):
 # check-in/check-out information.
 # ------------------------------------------
 
-class Hotel(TypedDict):
 
+
+
+
+class Hotel(TypedDict):
+    """Hotel data shared by demo and live searches."""
+
+    # Required fields: preserve existing compatibility
     name: str
     price_per_night: float
     check_in: str
     check_out: str
+
+    # Optional live hotel fields
+    total_price: NotRequired[float]
+    check_in_date: NotRequired[str]
+    check_out_date: NotRequired[str]
+    adults: NotRequired[int]
+    currency: NotRequired[str]
+    rating: NotRequired[float]
+    reviews: NotRequired[int]
+    property_token: NotRequired[str]
+    link: NotRequired[str]
+
 
 
 # ------------------------------------------

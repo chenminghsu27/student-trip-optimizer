@@ -1,6 +1,6 @@
 
-from datetime import datetime
-from pydantic import BaseModel, Field, model_validator
+from datetime import datetime, date
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 
 
 class FlightData(BaseModel):
@@ -24,10 +24,55 @@ class TripData(BaseModel):
 
 
 class HotelData(BaseModel):
+    """Validate demo hotels and live hotel quotations."""
+
+    model_config = ConfigDict(extra="forbid")
+
     name: str = Field(min_length=1)
-    price_per_night: float = Field(ge=0)
+    price_per_night: float = Field(ge=0, allow_inf_nan=False)
     check_in: str
     check_out: str
+
+    # Optional fields for Google Hotels
+    total_price: float | None = Field(
+        default=None,
+        ge=0,
+        allow_inf_nan=False,
+    )
+    check_in_date: date | None = None
+    check_out_date: date | None = None
+    adults: int | None = Field(default=None, ge=1)
+    currency: str | None = None
+    rating: float | None = Field(
+        default=None,
+        ge=0,
+        le=5,
+    )
+    reviews: int | None = Field(default=None, ge=0)
+    property_token: str | None = None
+    link: str | None = None
+
+    @model_validator(mode="after")
+    def validate_live_quote(self):
+        if self.total_price is not None:
+            if (
+                self.check_in_date is None
+                or self.check_out_date is None
+                or self.adults is None
+                or self.currency != "AUD"
+            ):
+                raise ValueError(
+                    "Live hotel quotes require dates, "
+                    "adults, and AUD currency."
+                )
+
+            if self.check_out_date <= self.check_in_date:
+                raise ValueError(
+                    "Hotel check-out must be after check-in."
+                )
+
+        return self
+
 
 
 def validate_trips(raw_trips):
@@ -65,16 +110,24 @@ def validate_trips(raw_trips):
     return validated
 
 
+
 def validate_hotels(raw_hotels):
+    """Validate hotels while preserving live quotation fields."""
+
     validated = []
 
     for raw in raw_hotels:
         hotel = HotelData.model_validate(raw)
 
-        # Check time format
         datetime.strptime(hotel.check_in, "%H:%M")
         datetime.strptime(hotel.check_out, "%H:%M")
 
-        validated.append(hotel.model_dump())
+        # Exclude optional fields that were not supplied.
+        hotel_data = hotel.model_dump(
+            mode="json",
+            exclude_none=True,
+        )
+
+        validated.append(hotel_data)
 
     return validated
