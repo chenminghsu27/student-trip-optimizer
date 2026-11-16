@@ -1,6 +1,5 @@
 import { PlaneTakeoff, PlaneLanding, BedDouble } from "lucide-react";
 import "./TripDetails.css";
-import "./TripDetails.css";
 
 function TripDetails({ trip }) {
   const formatPrice = (value) => `A$${Number(value).toFixed(2)}`;

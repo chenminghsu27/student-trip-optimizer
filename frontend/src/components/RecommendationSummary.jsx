@@ -1,4 +1,5 @@
 import "./RecommendationSummary.css";
+import { formatUsableHours } from "../utils/formatTime";
 
 function RecommendationSummary({ trips }) {
   if (!trips || trips.length === 0) {
@@ -30,13 +31,13 @@ function RecommendationSummary({ trips }) {
       id: "overall",
       title: "Best Overall",
       value: `A$${bestOverall.price.total.toFixed(2)}`,
-      description: `${bestOverall.travel.usableHours} usable hours`,
+      description: `${formatUsableHours(bestOverall.travel.usableHours)} usable travel time`,
       trip: bestOverall,
     },
     {
       id: "time",
       title: "Most Time",
-      value: `${mostTime.travel.usableHours}h`,
+      value: formatUsableHours(mostTime.travel.usableHours),
       description: "Longest usable travel time",
       trip: mostTime,
     },

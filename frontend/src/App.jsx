@@ -19,11 +19,12 @@ function App() {
   const [error, setError] = useState("");
   const [results, setResults] = useState(null);
   const [preferences, setPreferences] = useState({
+    search_mode: "demo",
+    adults: 1,
     origin: "MEL",
     destination: "SYD",
     departure_date: "2026-11-10",
     return_date: "2026-11-13",
-
     max_budget: 500,
     earliest_departure: "07:00",
     latest_arrival: "23:00",
@@ -102,11 +103,28 @@ function App() {
       preferences.departure_date === "2026-11-10" &&
       preferences.return_date === "2026-11-13";
 
-    if (!isDemoSearch) {
+    if (preferences.search_mode === "demo" && !isDemoSearch) {
       setError(
         "Demo Mode currently supports only MEL → SYD, " +
-          "10–13 November 2026. Live flight search is coming later.",
+          "10–13 November 2026. Switch to Live Mode to search other dates.",
       );
+      setResults(null);
+      return;
+    }
+
+    // Live Mode only supports future travel dates.
+    const today = new Date();
+    const localToday = [
+      today.getFullYear(),
+      String(today.getMonth() + 1).padStart(2, "0"),
+      String(today.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    if (
+      preferences.search_mode === "live" &&
+      preferences.departure_date < localToday
+    ) {
+      setError("Live Mode cannot search for past departure dates.");
       setResults(null);
       return;
     }
@@ -130,12 +148,22 @@ function App() {
         },
         body: JSON.stringify({
           ...preferences,
+          search_mode: preferences.search_mode,
+          adults: 1,
           max_budget: Number(preferences.max_budget),
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Unable to get recommendations (${response.status}).`);
+        const errorData = await response.json().catch(() => null);
+
+        const detail = errorData?.detail;
+        const message =
+          typeof detail === "string"
+            ? detail
+            : `Unable to get recommendations (${response.status}).`;
+
+        throw new Error(message);
       }
 
       const data = await response.json();
@@ -191,8 +219,19 @@ function App() {
                 <p>Tell us what matters most to you.</p>
 
                 <form onSubmit={handleSubmit}>
-                  {/* V6.7 — Travel Search */}
-
+                  {/* V7.4 — Search Mode */}
+                  <div className="form-group">
+                    <label htmlFor="search_mode">Search Mode</label>
+                    <select
+                      id="search_mode"
+                      name="search_mode"
+                      value={preferences.search_mode}
+                      onChange={handleChange}
+                    >
+                      <option value="demo">Demo — Sample Data</option>
+                      <option value="live">Live — Real Flights & Hotels</option>
+                    </select>
+                  </div>
                   <div className="form-group">
                     <label htmlFor="origin">Origin Airport</label>
                     <select
@@ -320,15 +359,20 @@ function App() {
                   <div className="search-demo-notice" role="note">
                     <div className="search-demo-title">
                       <span aria-hidden="true">ⓘ</span>
-                      <strong>Demo Mode</strong>
+                      <strong>
+                        {preferences.search_mode === "demo"
+                          ? "Demo Mode"
+                          : "Live Mode"}
+                      </strong>
                     </div>
 
                     <p>
-                      This project currently uses sample flight and
-                      accommodation data. Prices and availability are not live,
-                      and trips cannot be booked.
+                      {preferences.search_mode === "demo"
+                        ? "Using sample flight and accommodation data. Demo trips cannot be booked."
+                        : "Searching real flight and hotel listings. Prices are estimates and may change. Bookings are not available directly through this website."}
                     </p>
                   </div>
+
                   <button
                     type="submit"
                     className="find-trip-button"

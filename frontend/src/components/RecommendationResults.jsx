@@ -3,6 +3,18 @@ import { useState } from "react";
 import RecommendationSummary from "./RecommendationSummary";
 import TripList from "./TripList";
 
+function formatUsableHours(hours) {
+  if (hours == null || !Number.isFinite(Number(hours))) {
+    return "N/A";
+  }
+
+  const totalMinutes = Math.round(Number(hours) * 60);
+  const wholeHours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  return `${wholeHours}h ${minutes}m`;
+}
+
 // ------------------------------------------
 // Recommendation Results
 //

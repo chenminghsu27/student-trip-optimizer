@@ -1,5 +1,6 @@
 import { useState } from "react";
 import TripDetails from "./TripDetails";
+import { formatUsableHours } from "../utils/formatTime";
 import "./TripList.css";
 
 function TripList({ trips = [] }) {
@@ -45,7 +46,7 @@ function TripList({ trips = [] }) {
             <div className="trip-list-metrics">
               <div>
                 <span>Usable Hours</span>
-                <strong>{trip.travel.usableHours} hrs</strong>
+                <strong>{formatUsableHours(trip.travel.usableHours)}</strong>
               </div>
 
               <div>
