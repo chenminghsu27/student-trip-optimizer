@@ -1,3 +1,27 @@
+function formatTripName(trip) {
+  const departure = trip.outbound.departure;
+  const returnDate = trip.return.arrival;
+
+  const start = new Date(departure.replace(" ", "T"));
+  const end = new Date(returnDate.replace(" ", "T"));
+
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) {
+    return trip.name;
+  }
+
+  const dateOptions = {
+    day: "numeric",
+    month: "short",
+  };
+
+  const startText = start.toLocaleDateString("en-AU", dateOptions);
+  const endText = end.toLocaleDateString("en-AU", {
+    ...dateOptions,
+    year: "numeric",
+  });
+
+  return `${startText} – ${endText}`;
+}
 
 const CATEGORIES = [
   ["best_overall", "Best Overall"],
@@ -8,9 +32,7 @@ const CATEGORIES = [
 
 function validNumber(value, minimum = 0) {
   return (
-    typeof value === "number" &&
-    Number.isFinite(value) &&
-    value >= minimum
+    typeof value === "number" && Number.isFinite(value) && value >= minimum
   );
 }
 
@@ -47,11 +69,9 @@ export function mapTrip(trip, recommendations = {}) {
     return null;
   }
 
-  const labels = CATEGORIES
-    .filter(([key]) =>
-      matchesRecommendation(trip, recommendations[key])
-    )
-    .map(([, label]) => label);
+  const labels = CATEGORIES.filter(([key]) =>
+    matchesRecommendation(trip, recommendations[key]),
+  ).map(([, label]) => label);
 
   return {
     // Temporary ID until backend provides stable IDs
@@ -64,7 +84,7 @@ export function mapTrip(trip, recommendations = {}) {
       trip.hotel.name,
     ].join("|"),
 
-    name: trip.name,
+    name: formatTripName(trip),
 
     price: {
       total: trip.total_trip_cost,
@@ -95,8 +115,7 @@ export function mapTrip(trip, recommendations = {}) {
 }
 
 export function mapRecommendationResults(results) {
-  const recommendations =
-    results?.data?.recommendations ?? {};
+  const recommendations = results?.data?.recommendations ?? {};
 
   const trips = Array.isArray(results?.data?.pareto_trips)
     ? results.data.pareto_trips

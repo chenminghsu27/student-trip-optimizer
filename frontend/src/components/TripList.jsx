@@ -26,8 +26,8 @@ function TripList({ trips = [] }) {
           <article className="trip-list-item" key={`${trip.id}-${index}`}>
             <div className="trip-list-main">
               <div className="trip-list-info">
-                <h4>{trip.name}</h4>
-
+                <h3>{trip.name}</h3>
+                <p className="trip-hotel-name">{trip.accommodation.name}</p>
                 <div className="trip-list-labels">
                   {trip.ranking.labels.map((label) => (
                     <span className="trip-list-label" key={label}>
