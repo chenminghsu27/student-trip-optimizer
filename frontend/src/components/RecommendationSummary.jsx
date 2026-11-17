@@ -1,66 +1,125 @@
+import { useState } from "react";
 import "./RecommendationSummary.css";
 import { formatUsableHours } from "../utils/formatTime";
+import { mapTrip } from "../utils/tripMapper";
+import TripDetails from "./TripDetails";
 
-function RecommendationSummary({ trips }) {
-  if (!trips || trips.length === 0) {
+const CATEGORIES = [
+  {
+    id: "cheapest",
+    title: "Cheapest",
+    explanation:
+      "This trip has the lowest total cost among all eligible options.",
+  },
+  {
+    id: "best_balance",
+    title: "Best Balance",
+    explanation:
+      "This trip has the lowest time-adjusted score, balancing total cost, penalties, and usable travel time.",
+  },
+  {
+    id: "most_time",
+    title: "Most Time",
+    explanation:
+      "This trip provides the most usable travel time among all eligible options.",
+  },
+];
+
+function RecommendationSummary({ recommendations = {} }) {
+  const [selectedCategory, setSelectedCategory] = useState("best_balance");
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+
+  const availableCategories = CATEGORIES.filter(
+    (category) => recommendations[category.id],
+  );
+
+  if (availableCategories.length === 0) {
     return null;
   }
 
-  // Cheapest: lowest total trip cost
-  const cheapest = [...trips].sort((a, b) => a.price.total - b.price.total)[0];
+  const selected =
+    availableCategories.find((category) => category.id === selectedCategory) ??
+    availableCategories[0];
 
-  // Best Overall: lowest weighted score
-  const bestOverall = [...trips].sort(
-    (a, b) => a.ranking.weightedScore - b.ranking.weightedScore,
-  )[0];
+  const trip = mapTrip(recommendations[selected.id], recommendations);
 
-  // Most Time: highest usable travel hours
-  const mostTime = [...trips].sort(
-    (a, b) => b.travel.usableHours - a.travel.usableHours,
-  )[0];
-
-  const summaryItems = [
-    {
-      id: "cheapest",
-      title: "Cheapest",
-      value: `A$${cheapest.price.total.toFixed(2)}`,
-      description: "Lowest total cost",
-      trip: cheapest,
-    },
-    {
-      id: "overall",
-      title: "Best Overall",
-      value: `A$${bestOverall.price.total.toFixed(2)}`,
-      description: `${formatUsableHours(bestOverall.travel.usableHours)} usable travel time`,
-      trip: bestOverall,
-    },
-    {
-      id: "time",
-      title: "Most Time",
-      value: formatUsableHours(mostTime.travel.usableHours),
-      description: "Longest usable travel time",
-      trip: mostTime,
-    },
-  ];
+  if (!trip) {
+    return null;
+  }
 
   return (
-    <section
-      className="recommendation-summary"
-      aria-labelledby="summary-heading"
-    >
-      <div className="summary-grid">
-        {summaryItems.map((item) => (
-          <article className="summary-card" key={item.id}>
-            <span className={`summary-type ${item.id}`}>{item.title}</span>
+    <section className="recommendation-summary" aria-label="Recommended trips">
+      <h2>Recommended Trip</h2>
 
-            <strong className="summary-value">{item.value}</strong>
-
-            <span className="summary-description">{item.description}</span>
-
-            <span className="summary-trip-name">{item.trip.name}</span>
-          </article>
+      <div
+        className="recommendation-tabs"
+        role="group"
+        aria-label="Recommendation type"
+      >
+        {availableCategories.map((category) => (
+          <button
+            key={category.id}
+            type="button"
+            className={
+              selected.id === category.id
+                ? "recommendation-tab active"
+                : "recommendation-tab"
+            }
+            aria-pressed={selected.id === category.id}
+            onClick={() => {
+              setSelectedCategory(category.id);
+              setShowExplanation(false);
+              setShowDetails(false);
+            }}
+          >
+            {category.title}
+          </button>
         ))}
       </div>
+
+      <article className="recommendation-featured">
+        <h3>{selected.title}</h3>
+
+        <p className="recommendation-trip-name">{trip.name}</p>
+
+        <div className="recommendation-metrics">
+          <div>
+            <span>Total Cost</span>
+            <strong>A${trip.price.total.toFixed(2)}</strong>
+          </div>
+
+          <div>
+            <span>Usable Time</span>
+            <strong>{formatUsableHours(trip.travel.usableHours)}</strong>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="recommendation-explanation-toggle"
+          aria-expanded={showExplanation}
+          onClick={() => setShowExplanation((previous) => !previous)}
+        >
+          How was this selected?
+        </button>
+
+        {showExplanation && (
+          <p className="recommendation-explanation">{selected.explanation}</p>
+        )}
+        <div className="recommendation-details-section">
+          <button
+            type="button"
+            className="recommendation-details-toggle"
+            aria-expanded={showDetails}
+            onClick={() => setShowDetails((previous) => !previous)}
+          >
+            {showDetails ? "Hide Trip Details" : "View Trip Details"}
+          </button>
+
+          {showDetails && <TripDetails trip={trip} />}
+        </div>
+      </article>
     </section>
   );
 }

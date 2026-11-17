@@ -96,9 +96,9 @@ def test_live_recommendations_success(mock_flights, mock_hotels):
     assert body["meta"]["filtered_count"] >= 1
     assert body["meta"]["pareto_count"] >= 1
 
-    assert "best_overall" in body["data"]["recommendations"]
+    assert "best_balance" in body["data"]["recommendations"]
 
-    best = body["data"]["recommendations"]["best_overall"]
+    best = body["data"]["recommendations"]["best_balance"]
 
     assert best["total_price"] == 270.0
     assert best["hotel_cost"] == 300.0

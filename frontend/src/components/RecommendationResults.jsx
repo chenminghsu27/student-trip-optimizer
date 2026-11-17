@@ -1,24 +1,13 @@
-import { mapRecommendationResults } from "../utils/tripMapper";
 import { useState } from "react";
+import { mapRecommendationResults } from "../utils/tripMapper";
 import RecommendationSummary from "./RecommendationSummary";
 import TripList from "./TripList";
-
-function formatUsableHours(hours) {
-  if (hours == null || !Number.isFinite(Number(hours))) {
-    return "N/A";
-  }
-
-  const totalMinutes = Math.round(Number(hours) * 60);
-  const wholeHours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
-  return `${wholeHours}h ${minutes}m`;
-}
 
 // ------------------------------------------
 // Recommendation Results
 //
-// Sort and compare Pareto-optimal trips.
+// Display backend-selected recommendations
+// and compare the top 50 eligible trips.
 // ------------------------------------------
 
 function RecommendationResults({ results }) {
@@ -27,53 +16,29 @@ function RecommendationResults({ results }) {
   const { trips: mappedTrips, recommendations } =
     mapRecommendationResults(results);
 
-  const validTrips = mappedTrips.map((trip) => trip.raw);
-
-  function getLabels(trip) {
-    const mappedTrip = mappedTrips.find((item) => item.raw === trip);
-    return mappedTrip?.ranking.labels ?? [];
-  }
-
   // ------------------------------------------
   // Sort Trips
   // ------------------------------------------
 
-  const sortedTrips = [...validTrips].sort((a, b) => {
+  const sortedTrips = [...mappedTrips].sort((a, b) => {
     switch (sortBy) {
       case "price":
-        return a.total_trip_cost - b.total_trip_cost;
+        return a.price.total - b.price.total;
 
       case "hours":
-        return b.usable_hours - a.usable_hours;
+        return b.travel.usableHours - a.travel.usableHours;
 
       case "value":
-        return a.cost_per_hour - b.cost_per_hour;
+        return a.price.perHour - b.price.perHour;
 
       default:
-        return a.weighted_score - b.weighted_score;
+        return a.ranking.weightedScore - b.ranking.weightedScore;
     }
   });
 
-  // ------------------------------------------
-  // Compare Cheapest and Best Overall
-  // ------------------------------------------
+  const hasRecommendations = Object.values(recommendations).some(Boolean);
 
-  const cheapest = recommendations.cheapest;
-  const bestOverall = recommendations.best_overall;
-
-  const differentTrips =
-    cheapest &&
-    bestOverall &&
-    (cheapest.name !== bestOverall.name ||
-      cheapest.total_trip_cost !== bestOverall.total_trip_cost);
-
-  const extraCost = differentTrips
-    ? bestOverall.total_trip_cost - cheapest.total_trip_cost
-    : 0;
-
-  const extraHours = differentTrips
-    ? bestOverall.usable_hours - cheapest.usable_hours
-    : 0;
+  const hasResults = mappedTrips.length > 0 || hasRecommendations;
 
   // ------------------------------------------
   // Render Results
@@ -84,9 +49,10 @@ function RecommendationResults({ results }) {
       <div className="results-heading">
         <h2>Your Trip Recommendations</h2>
 
-        <p>{validTrips.length} travel options based on your preferences.</p>
+        <p>{mappedTrips.length} travel options available for comparison.</p>
       </div>
-      {validTrips.length === 0 ? (
+
+      {!hasResults ? (
         <div className="empty-results" role="status">
           <h3>No matching trips found</h3>
           <p>
@@ -96,26 +62,28 @@ function RecommendationResults({ results }) {
         </div>
       ) : (
         <>
-          <RecommendationSummary trips={mappedTrips} />
-          <div className="sorting-controls">
-            <label htmlFor="sortBy">Sort By</label>
+          <RecommendationSummary recommendations={recommendations} />
 
-            <select
-              id="sortBy"
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-            >
-              <option value="recommended">Recommended</option>
-              <option value="price">Lowest Price</option>
-              <option value="hours">Most Travel Hours</option>
-              <option value="value">Best Cost per Hour</option>
-            </select>
-          </div>
-          <TripList
-            trips={sortedTrips
-              .map((trip) => mappedTrips.find((item) => item.raw === trip))
-              .filter(Boolean)}
-          />
+          {mappedTrips.length > 0 && (
+            <>
+              <div className="sorting-controls">
+                <label htmlFor="sortBy">Sort By</label>
+
+                <select
+                  id="sortBy"
+                  value={sortBy}
+                  onChange={(event) => setSortBy(event.target.value)}
+                >
+                  <option value="recommended">Recommended</option>
+                  <option value="price">Lowest Price</option>
+                  <option value="hours">Most Travel Hours</option>
+                  <option value="value">Best Cost per Hour</option>
+                </select>
+              </div>
+
+              <TripList trips={sortedTrips} />
+            </>
+          )}
         </>
       )}
     </section>

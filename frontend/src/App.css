@@ -537,3 +537,121 @@
 .search-page-container .results-container {
   margin-top: 40px;
 }
+.value-time-group {
+  max-width: 100%;
+}
+
+.value-time-heading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.optional-label {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #64748b;
+}
+
+.value-time-field {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.value-time-prefix {
+  padding-left: 16px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.value-time-field input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 12px 10px;
+  border: none;
+  outline: none;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.value-time-field input:focus {
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+.value-time-field:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.value-time-field input::-webkit-inner-spin-button,
+.value-time-field input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.value-time-suffix {
+  padding-right: 16px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.value-time-hint {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.value-time-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.value-time-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: help;
+}
+
+.value-time-tooltip-text {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(280px, 75vw);
+  padding: 12px;
+  border-radius: 8px;
+  background: #1e293b;
+  color: white;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.value-time-tooltip:hover .value-time-tooltip-text,
+.value-time-tooltip:focus-within .value-time-tooltip-text {
+  display: block;
+}

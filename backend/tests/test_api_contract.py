@@ -64,13 +64,25 @@ def test_response_structure(valid_preferences):
 
     assert set(result["data"].keys()) == {
         "recommendations",
-        "pareto_trips"
+        "pareto_trips",
+        "top_50_trips",
     }
 
     assert set(result["meta"].keys()) == {
         "filtered_count",
         "pareto_count"
     }
+    top_50_trips = result["data"]["top_50_trips"]
+
+    assert isinstance(top_50_trips, list)
+    assert len(top_50_trips) <= 50
+
+    scores = [
+        trip["weighted_score"]
+        for trip in top_50_trips
+    ]
+
+    assert scores == sorted(scores)
 # ------------------------------------------
 # Test Metadata Consistency
 #

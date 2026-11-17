@@ -76,7 +76,7 @@ def test_recommendation_pipeline():
     )
 
     assert (
-        result["recommendations"]["best_overall"]["name"]
+        result["recommendations"]["best_balance"]["name"]
         == "Trip A + Budget Hostel"
     )
 # ------------------------------------------

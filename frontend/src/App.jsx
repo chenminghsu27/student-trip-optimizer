@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import RecommendationResults from "./components/RecommendationResults";
+import { CircleHelp } from "lucide-react";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 // ------------------------------------------
@@ -30,6 +31,7 @@ function App() {
     latest_arrival: "23:00",
     allow_overnight_flights: false,
     travel_style: "balanced",
+    value_of_time: "",
   });
 
   // ------------------------------------------
@@ -77,6 +79,18 @@ function App() {
       budget <= 0
     ) {
       setError("Please enter a valid budget greater than 0.");
+      setResults(null);
+      return;
+    }
+    const customValueOfTime = preferences.value_of_time;
+
+    if (
+      customValueOfTime !== "" &&
+      (!Number.isFinite(Number(customValueOfTime)) ||
+        Number(customValueOfTime) <= 0 ||
+        Number(customValueOfTime) > 100)
+    ) {
+      setError("Value of Time must be greater than 0 and at most A$100/hour.");
       setResults(null);
       return;
     }
@@ -148,9 +162,13 @@ function App() {
         },
         body: JSON.stringify({
           ...preferences,
-          search_mode: preferences.search_mode,
           adults: 1,
+          travel_style: "balanced",
           max_budget: Number(preferences.max_budget),
+          value_of_time:
+            preferences.value_of_time === ""
+              ? null
+              : Number(preferences.value_of_time),
         }),
       });
 
@@ -220,18 +238,7 @@ function App() {
 
                 <form onSubmit={handleSubmit}>
                   {/* V7.4 — Search Mode */}
-                  <div className="form-group">
-                    <label htmlFor="search_mode">Search Mode</label>
-                    <select
-                      id="search_mode"
-                      name="search_mode"
-                      value={preferences.search_mode}
-                      onChange={handleChange}
-                    >
-                      <option value="demo">Demo — Sample Data</option>
-                      <option value="live">Live — Real Flights & Hotels</option>
-                    </select>
-                  </div>
+
                   <div className="form-group">
                     <label htmlFor="origin">Origin Airport</label>
                     <select
@@ -341,20 +348,57 @@ function App() {
                       onChange={handleChange}
                     />
                   </div>
+                  <div className="form-group value-time-group">
+                    <div className="value-time-heading">
+                      <label htmlFor="value_of_time">
+                        Value of Travel Time
+                      </label>
 
-                  <div className="form-group">
-                    <label htmlFor="travel_style">Travel Style</label>
+                      <span className="optional-label">(Optional)</span>
 
-                    <select
-                      id="travel_style"
-                      name="travel_style"
-                      value={preferences.travel_style}
-                      onChange={handleChange}
-                    >
-                      <option value="budget">Budget</option>
-                      <option value="balanced">Balanced</option>
-                      <option value="time-focused">Time-Focused</option>
-                    </select>
+                      <span className="value-time-tooltip">
+                        <button
+                          type="button"
+                          className="value-time-help"
+                          aria-label="Explain value of travel time"
+                          aria-describedby="value-time-explanation"
+                        >
+                          <CircleHelp size={17} />
+                        </button>
+
+                        <span
+                          id="value-time-explanation"
+                          className="value-time-tooltip-text"
+                          role="tooltip"
+                        >
+                          The default A$10.58/hour is calculated as 40% of
+                          Australia's national minimum hourly wage. This is a
+                          modelling assumption, not an official standard.
+                        </span>
+                      </span>
+                    </div>
+
+                    <div className="value-time-field">
+                      <span className="value-time-prefix">A$</span>
+
+                      <input
+                        id="value_of_time"
+                        type="number"
+                        name="value_of_time"
+                        min="0.01"
+                        max="100"
+                        step="0.01"
+                        placeholder="10.58"
+                        value={preferences.value_of_time}
+                        onChange={handleChange}
+                      />
+
+                      <span className="value-time-suffix">/ hour</span>
+                    </div>
+
+                    <small className="value-time-hint">
+                      Leave blank to use the default value of A$10.58 per hour.
+                    </small>
                   </div>
                   <div className="search-demo-notice" role="note">
                     <div className="search-demo-title">

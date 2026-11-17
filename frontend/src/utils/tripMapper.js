@@ -24,10 +24,9 @@ function formatTripName(trip) {
 }
 
 const CATEGORIES = [
-  ["best_overall", "Best Overall"],
   ["cheapest", "Cheapest"],
-  ["best_value", "Best Value"],
-  ["best_time_adjusted", "Best Time Adjusted"],
+  ["best_balance", "Best Balance"],
+  ["most_time", "Most Time"],
 ];
 
 function validNumber(value, minimum = 0) {
@@ -117,8 +116,10 @@ export function mapTrip(trip, recommendations = {}) {
 export function mapRecommendationResults(results) {
   const recommendations = results?.data?.recommendations ?? {};
 
-  const trips = Array.isArray(results?.data?.pareto_trips)
-    ? results.data.pareto_trips
+  // Phase 3: Display the top 50 eligible trips
+  // instead of only the Pareto frontier.
+  const trips = Array.isArray(results?.data?.top_50_trips)
+    ? results.data.top_50_trips
     : [];
 
   const mappedTrips = trips

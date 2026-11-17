@@ -12,16 +12,12 @@ from calculations import (
     calculate_weighted_score,
     find_pareto_frontier,
 )
-
 from filters import check_preferences
-from ranking import find_best_trip
-
 from validation import (
     validate_flight,
     validate_hotel,
     validate_preferences,
 )
-from data import TRAVEL_STYLES
 # ------------------------------------------
 # Generate Trip Combinations
 #
@@ -154,7 +150,7 @@ def generate_recommendations(
     hotels: list[dict],
     preferences: dict
 ) -> dict:
-        # ------------------------------------------
+    # ------------------------------------------
     # Validate Input Data
     #
     # Reject invalid data before
@@ -209,8 +205,9 @@ def generate_recommendations(
     if not filtered_combinations:
         return {
             "filtered_trips": [],
+            "top_50_trips": [],
             "pareto_trips": [],
-            "recommendations": {}
+            "recommendations": {},
         }
 
     # Pareto optimization
@@ -219,27 +216,45 @@ def generate_recommendations(
     )
 
     # Rank trips
+    # Select recommendations from all eligible trips.
     recommendations = {
-        "cheapest": find_best_trip(
+        "cheapest": min(
             filtered_combinations,
-            "total_trip_cost"
+            key=lambda trip: (
+                trip["total_trip_cost"],
+                -trip["usable_hours"],
+                trip["penalty"],
+            ),
         ),
-        "best_time_adjusted": find_best_trip(
+        "best_balance": min(
             filtered_combinations,
-            "score"
+            key=lambda trip: (
+                trip["weighted_score"],
+                trip["total_trip_cost"],
+            ),
         ),
-        "best_value": find_best_trip(
+        "most_time": min(
             filtered_combinations,
-            "cost_per_hour"
+            key=lambda trip: (
+                -trip["usable_hours"],
+                trip["total_trip_cost"],
+                trip["penalty"],
+            ),
         ),
-        "best_overall": find_best_trip(
-            pareto_trips,
-            "weighted_score"
-        )
     }
-
+    # Rank all eligible trips by weighted score.
+    # Lower scores represent better cost-time trade-offs.
+    top_50_trips = sorted(
+        filtered_combinations,
+        key=lambda trip: (
+            trip["weighted_score"],
+            trip["total_trip_cost"],
+            -trip["usable_hours"],
+        ),
+    )[:50]
     return {
         "filtered_trips": filtered_combinations,
+        "top_50_trips": top_50_trips,
         "pareto_trips": pareto_trips,
-        "recommendations": recommendations
+        "recommendations": recommendations,
     }

@@ -1,81 +1,190 @@
 .recommendation-summary {
-  margin: 28px 0;
+  margin: 28px 0 36px;
 }
 
-.summary-heading {
-  margin-bottom: 18px;
-}
-
-.summary-heading h3 {
-  font-size: 1.35rem;
-  margin: 0 0 6px;
-}
-
-.summary-heading p {
-  color: #64748b;
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.summary-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-  padding: 20px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-}
-
-.summary-card:first-child {
-  border-top: 4px solid #16a34a;
-}
-
-.summary-card:nth-child(2) {
-  border-top: 4px solid #2563eb;
-}
-
-.summary-card:nth-child(3) {
-  border-top: 4px solid #f59e0b;
-}
-
-.summary-type {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #475569;
-}
-
-.summary-value {
-  font-size: clamp(1.5rem, 2.5vw, 2rem);
-  font-weight: 800;
+.recommendation-summary h2 {
+  margin: 0 0 18px;
+  font-size: 1.4rem;
   color: #0f172a;
 }
 
-.summary-description {
+/* Recommendation category tabs */
+
+.recommendation-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  margin-bottom: 16px;
+  background: #f1f5f9;
+  border-radius: 14px;
+}
+
+.recommendation-tab {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.recommendation-tab:hover {
+  background: #e2e8f0;
+}
+
+.recommendation-tab.active {
+  background: #ffffff;
+  color: #1d4ed8;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+}
+
+.recommendation-tab:focus-visible,
+.recommendation-explanation-toggle:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+/* Featured recommendation */
+
+.recommendation-featured {
+  padding: 26px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.recommendation-featured h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.recommendation-trip-name {
+  margin: 0 0 24px;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.recommendation-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.recommendation-metrics > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 18px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.recommendation-metrics span {
   color: #64748b;
   font-size: 0.85rem;
 }
 
-.summary-trip-name {
-  margin-top: auto;
-  font-size: 0.8rem;
-  color: #475569;
+.recommendation-metrics strong {
+  color: #0f172a;
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+  font-weight: 750;
   overflow-wrap: anywhere;
 }
 
+/* Explanation */
+
+.recommendation-explanation-toggle {
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recommendation-explanation-toggle:hover {
+  text-decoration: underline;
+}
+
+.recommendation-explanation {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  background: #eff6ff;
+  border-radius: 10px;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* Mobile */
+
 @media (max-width: 700px) {
-  .summary-grid {
-    grid-template-columns: 1fr;
+  .recommendation-tabs {
+    gap: 4px;
+    padding: 4px;
   }
 
-  .summary-card {
-    padding: 16px;
+  .recommendation-tab {
+    padding: 10px 6px;
+    font-size: 0.8rem;
   }
+
+  .recommendation-featured {
+    padding: 18px;
+  }
+
+  .recommendation-metrics {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .recommendation-metrics > div {
+    padding: 14px;
+  }
+}
+/* Expandable trip details */
+
+.recommendation-details-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.recommendation-details-toggle {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1d4ed8;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.recommendation-details-toggle:hover {
+  background: #eff6ff;
+}
+
+.recommendation-details-toggle:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.recommendation-details-section .expanded-trip-details {
+  margin-top: 18px;
 }

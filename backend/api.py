@@ -154,9 +154,9 @@ class TripPreferencesRequest(BaseModel):
 # ------------------------------------------
 
 class RecommendationData(BaseModel):
-
     recommendations: dict
     pareto_trips: list[dict]
+    top_50_trips: list[dict]
 # ------------------------------------------
 # Response Metadata Model
 #
@@ -383,12 +383,14 @@ def get_recommendations(
 
     filtered_trips = result["filtered_trips"]
     pareto_trips = result["pareto_trips"]
+    top_50_trips = result["top_50_trips"]
 
     return RecommendationResponse(
         status="success",
         data=RecommendationData(
             recommendations=result["recommendations"],
             pareto_trips=pareto_trips,
+            top_50_trips=top_50_trips,
         ),
         meta=RecommendationMeta(
             filtered_count=len(filtered_trips),
