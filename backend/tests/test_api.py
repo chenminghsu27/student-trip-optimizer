@@ -196,3 +196,50 @@ def test_unexpected_server_error(
     assert response.json() == {
         "detail": "Internal server error."
     }
+def test_custom_value_of_time_changes_score():
+    base_payload = {
+        "search_mode": "demo",
+        "origin": "MEL",
+        "destination": "SYD",
+        "departure_date": "2026-11-10",
+        "return_date": "2026-11-13",
+        "max_budget": 500,
+        "earliest_departure": "07:00",
+        "latest_arrival": "23:00",
+        "allow_overnight_flights": False,
+        "travel_style": "balanced",
+    }
+
+    low_response = client.post(
+        "/recommendations",
+        json={**base_payload, "value_of_time": 5},
+    )
+
+    high_response = client.post(
+        "/recommendations",
+        json={**base_payload, "value_of_time": 15},
+    )
+
+    assert low_response.status_code == 200
+    assert high_response.status_code == 200
+
+    low_trips = low_response.json()["data"]["pareto_trips"]
+    high_trips = high_response.json()["data"]["pareto_trips"]
+
+    low_scores = {
+        trip["name"]: trip["weighted_score"]
+        for trip in low_trips
+    }
+
+    high_scores = {
+        trip["name"]: trip["weighted_score"]
+        for trip in high_trips
+    }
+
+    common_names = low_scores.keys() & high_scores.keys()
+
+    assert common_names
+    assert any(
+        low_scores[name] != high_scores[name]
+        for name in common_names
+    )

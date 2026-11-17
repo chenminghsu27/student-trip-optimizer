@@ -89,6 +89,12 @@ def health_check():
 class TripPreferencesRequest(BaseModel):
     search_mode: Literal["demo", "live"] = "demo"
     adults: int = Field(default=1, ge=1, le=8)
+    value_of_time: float | None = Field(
+    default=None,
+    gt=0,
+    le=100,
+    description="User-defined value of usable travel time in AUD/hour."
+    )
     # V6.8 — Travel Search
     origin: Literal["MEL", "SYD", "BNE"]
     destination: Literal["MEL", "SYD", "BNE"]

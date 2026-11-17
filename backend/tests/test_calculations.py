@@ -117,7 +117,6 @@ def test_custom_flight_penalty(rate, expected):
         (250, 30, 40, 5, 80),
         (290, 0, 55, 5, 15),
         (210, 60, 25, 5, 145),
-        (250, 30, 40, 0, 280),
         (250, 30, 40, 10, -120),
     ]
 )
@@ -334,3 +333,14 @@ def test_pareto_removes_dominated_trip():
     frontier_names = {trip["name"] for trip in frontier}
 
     assert frontier_names == {"A", "C"}
+def test_weighted_score_rejects_zero_time_value():
+    with pytest.raises(
+        ValueError,
+        match="Time value must be greater than zero"
+    ):
+        calculate_weighted_score(
+            total_cost=250,
+            penalty=30,
+            usable_hours=40,
+            time_value=0
+        )

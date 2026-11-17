@@ -1,4 +1,5 @@
 from models import FlightItinerary, Hotel, Trip
+from config import DEFAULT_VALUE_OF_TIME
 from datetime import datetime
 from calculations import (
     calculate_total_price,
@@ -175,9 +176,18 @@ def generate_recommendations(
 
     for hotel in hotels:
         validate_hotel(hotel)
-    time_value = TRAVEL_STYLES[
-        preferences["travel_style"]
-    ]
+    custom_time_value = preferences.get("value_of_time")
+
+    time_value = (
+        DEFAULT_VALUE_OF_TIME
+        if custom_time_value is None
+        else custom_time_value
+    )
+
+    if not 0 < time_value <= 100:
+        raise ValueError(
+            "Value of time must be greater than 0 and at most 100."
+        )
 
     # Generate combinations
     combinations = generate_combinations(

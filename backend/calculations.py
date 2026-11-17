@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from config import DEFAULT_VALUE_OF_TIME
 # ------------------------------------------
 # Convert string to datetime object
 #
@@ -279,21 +280,46 @@ def calculate_departure_penalty(
 #
 # A lower score indicates better value.
 # ------------------------------------------
-
 def calculate_weighted_score(
     total_cost: float,
     penalty: float,
     usable_hours: float,
-    time_value: float = 5.0
+    time_value: float | None = None
 ) -> float:
+    """
+    Calculate the weighted trip score.
 
-    if time_value < 0:
-        raise ValueError("Time value cannot be negative.")
+    Formula:
+        Score = Total Cost + Penalty - (v * Usable Hours)
+
+    Args:
+        total_cost: Total flight and accommodation cost (AUD).
+        penalty: Flight inconvenience penalty (AUD equivalent).
+        usable_hours: Usable travel hours at the destination.
+        time_value: Optional user-defined value of time (AUD/hour).
+
+    Returns:
+        Weighted score. Lower is better.
+    """
+
+    effective_time_value = (
+        DEFAULT_VALUE_OF_TIME
+        if time_value is None
+        else time_value
+    )
+
+    if effective_time_value <= 0:
+        raise ValueError("Time value must be greater than zero.")
 
     if usable_hours < 0:
         raise ValueError("Usable hours cannot be negative.")
 
-    return total_cost + penalty - time_value * usable_hours
+    return (
+        total_cost
+        + penalty
+        - effective_time_value * usable_hours
+    )
+
 # ------------------------------------------
 # Check Pareto Dominance
 #
